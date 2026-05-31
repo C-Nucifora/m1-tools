@@ -1,0 +1,18 @@
+# Cloned workspace repos (vcs import output)
+tree-sitter-m1/
+m1-core/
+m1-typecheck/
+m1-lsp/
+m1-fmt/
+m1-lint/
+m1-vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
