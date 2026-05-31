@@ -79,6 +79,15 @@ return {
         "C-Nucifora/tree-sitter-m1",
         dependencies = { "nvim-treesitter/nvim-treesitter" },
         config = function()
+            local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+            parser_config.m1 = {
+                install_info = {
+                    url = "https://github.com/C-Nucifora/tree-sitter-m1",
+                    files = { "src/parser.c" },
+                    branch = "main",
+                },
+                filetype = "m1",
+            }
             vim.cmd("TSInstall! m1")
         end,
     },
