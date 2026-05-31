@@ -30,6 +30,7 @@ vcs pull .. < m1-tools.repos
 | --- | --- | --- |
 | [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings | Stable |
 | [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library | Stable |
+| [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics | In development |
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | In development |
 | [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter | In development |
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter | In development |
@@ -51,11 +52,19 @@ The shared parsing and diagnostics library used by all other tools. Exposes:
 use m1_core::{parse, Cst, Node, Kind, Diagnostic, Code, Severity, Range, Position};
 ```
 
-All higher-level tools (`m1-lsp`, `m1-fmt`, `m1-lint`) depend on this crate.
+All higher-level tools (`m1-typecheck`, `m1-lsp`, `m1-fmt`, `m1-lint`) depend on this crate.
+
+### m1-typecheck
+
+The type and symbol model for M1 script, built on `m1-core`. Loads the project's
+`Project.m1prj` symbol table (channels, parameters, functions) and infers local
+variable types, surfacing type-rule diagnostics (`T001`–`T011`). It powers
+`m1-lsp`'s hover, completion, rename, and inlay type-hints, and is also available
+as a standalone `nvim-lint` plugin.
 
 ### m1-lsp
 
-A Language Server Protocol server for M1 script. Provides diagnostics, hover, go-to-definition, and completion to any LSP-capable editor.
+A Language Server Protocol server for M1 script. Provides diagnostics, hover, go-to-definition, completion, rename, and inlay type-hints to any LSP-capable editor.
 
 ### m1-fmt
 
@@ -127,30 +136,20 @@ This gives you:
 
 ### VS Code
 
-> Extension coming soon. In the meantime, use the generic LSP client extension and point it at the `m1-lsp` binary.
+Use the [m1-vscode](https://github.com/nedlane/m1-vscode) extension. It bundles the
+`m1-lsp` server and provides syntax highlighting, diagnostics, hover, formatting,
+go-to-definition, completion, rename, and inlay type-hints — no separate install.
 
-Install `m1-lsp`:
+Download the VSIX for your platform from the
+[Releases page](https://github.com/nedlane/m1-vscode/releases) and install it:
 
 ```sh
-git clone https://github.com/C-Nucifora/m1-lsp
-cd m1-lsp
-cargo build --release
-# Binary is at target/release/m1-lsp
+code --install-extension m1-vscode-linux-x64.vsix
 ```
 
-Install the [generic LSP client](https://marketplace.visualstudio.com/items?itemName=genericlsp.genericlsp) extension, then add to your `settings.json`:
-
-```json
-{
-    "genericlsp.configs": [
-        {
-            "name": "m1-lsp",
-            "command": "/path/to/m1-lsp/target/release/m1-lsp",
-            "filetypes": ["m1scr"]
-        }
-    ]
-}
-```
+Apple-Silicon macOS (`darwin-arm64`) and Windows (`win32-x64`) have their own VSIX.
+Intel-Mac users install the `universal` VSIX and build the server themselves — see
+the [m1-vscode README](https://github.com/nedlane/m1-vscode#intel-macos-x86_64-apple-darwin).
 
 ### Zed
 
@@ -239,11 +238,13 @@ tree-sitter-m1   ← grammar (C + Rust bindings)
       ↑
    m1-core       ← CST helpers + diagnostics
       ↑
-  ┌───┴───────────────┐
-m1-lsp   m1-fmt   m1-lint
+  ┌───┴──────────┬────────┐
+m1-typecheck   m1-fmt   m1-lint   ← libraries built on m1-core
+      ↑
+   m1-lsp   ← integrates m1-core + m1-typecheck + m1-fmt + m1-lint
 ```
 
-All tools are independent binaries. `m1-core` is a library crate; the others expose both a CLI and (where applicable) a plugin API for editor integration.
+`m1-core` and `m1-typecheck` are library crates; `m1-fmt` and `m1-lint` expose both a CLI and an editor plugin API, and `m1-lsp` integrates the type model, formatter, and linter behind a single LSP server.
 
 ---
 
