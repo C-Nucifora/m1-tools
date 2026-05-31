@@ -1,0 +1,21 @@
+repositories:
+  tree-sitter-m1:
+    type: git
+    url: https://github.com/C-Nucifora/tree-sitter-m1.git
+    version: main
+  m1-core:
+    type: git
+    url: https://github.com/C-Nucifora/m1-core.git
+    version: main
+  m1-lsp:
+    type: git
+    url: https://github.com/C-Nucifora/m1-lsp.git
+    version: main
+  m1-fmt:
+    type: git
+    url: https://github.com/C-Nucifora/m1-fmt.git
+    version: main
+  m1-lint:
+    type: git
+    url: https://github.com/C-Nucifora/m1-lint.git
+    version: main
