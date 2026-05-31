@@ -5,7 +5,7 @@ A suite of developer tools for the MoTeC M1 scripting language (`.m1scr`), provi
 ## Tools
 
 | Repo | Purpose | Status |
-|------|---------|--------|
+| --- | --- | --- |
 | [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings | Stable |
 | [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library | Stable |
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | In development |
@@ -202,7 +202,7 @@ cargo build --release
 
 ## Architecture
 
-```
+```text
 tree-sitter-m1   ← grammar (C + Rust bindings)
       ↑
    m1-core       ← CST helpers + diagnostics
