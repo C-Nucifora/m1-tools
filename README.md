@@ -33,6 +33,7 @@ vcs pull .. < m1-tools.repos
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | In development |
 | [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter | In development |
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter | In development |
+| [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension | In development |
 
 ### tree-sitter-m1
 
