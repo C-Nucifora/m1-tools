@@ -250,4 +250,6 @@ m1-typecheck   m1-fmt   m1-lint   ← libraries built on m1-core
 
 ## License
 
-MIT
+Licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later) — see [LICENSE](LICENSE).
+
+Copyright (C) 2026 The M1 Tools authors.
