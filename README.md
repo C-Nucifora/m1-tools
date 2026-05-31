@@ -2,6 +2,28 @@
 
 A suite of developer tools for the MoTeC M1 scripting language (`.m1scr`), providing syntax highlighting, language server support, formatting, and linting across all major editors.
 
+## Getting Started
+
+Install [vcstool](https://github.com/dirk-thomas/vcstool):
+
+```sh
+pip install vcstool
+```
+
+Clone this repo and all sub-repos:
+
+```sh
+git clone https://github.com/C-Nucifora/m1-tools.git
+cd m1-tools
+vcs import .. < m1-tools.repos
+```
+
+Each sub-repo is cloned as a sibling of `m1-tools`. To update all sub-repos to latest `main`:
+
+```sh
+vcs pull .. < m1-tools.repos
+```
+
 ## Tools
 
 | Repo | Purpose | Status |
