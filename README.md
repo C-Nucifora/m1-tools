@@ -26,19 +26,19 @@ vcs pull .. < m1-tools.repos
 
 ## Tools
 
-| Repo | Purpose | Status |
-| --- | --- | --- |
-| [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings | **Stable** |
-| [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library | **Stable** |
-| [m1-workspace](https://github.com/nedlane/m1-workspace) | Shared filesystem/path conventions library that the tools depend on | **Stable** |
-| [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (12 rules) | **Beta** |
-| [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | **Beta** |
-| [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension | **Beta** |
-| [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics | **Scaffold** |
-| [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter | **Design needed** |
-| [nvim-m1](https://github.com/C-Nucifora/nvim-m1) | Neovim plugin (LSP + tree-sitter + lint + fmt) | **Scaffold** |
-| [telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) | Telescope extension: symbol picker, component browser | **Scaffold** |
-| [m1-ci](https://github.com/C-Nucifora/m1-ci) | Reusable GitHub Actions workflows for M1 projects | **Scaffold** |
+| Repo | Purpose |
+| --- | --- |
+| [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings |
+| [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library |
+| [m1-workspace](https://github.com/nedlane/m1-workspace) | Shared filesystem/path conventions library that the tools depend on |
+| [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (12 rules) |
+| [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation |
+| [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension |
+| [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics |
+| [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter |
+| [nvim-m1](https://github.com/C-Nucifora/nvim-m1) | Neovim plugin (LSP + tree-sitter + lint + fmt) |
+| [telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) | Telescope extension: symbol picker, component browser |
+| [m1-ci](https://github.com/C-Nucifora/m1-ci) | Reusable GitHub Actions workflows for M1 projects |
 
 ### tree-sitter-m1
 
@@ -83,7 +83,7 @@ Configure via `.m1lint.toml` in the project root. Rules can be individually enab
 
 ### m1-lsp
 
-A Language Server Protocol server for M1 script (v0.4.1). Integrates `m1-core`, `m1-typecheck`, and `m1-lint` behind a single LSP binary. Capabilities:
+A Language Server Protocol server for M1 script. Integrates `m1-core`, `m1-typecheck`, and `m1-lint` behind a single LSP binary. Capabilities:
 
 | Category | Features |
 | --- | --- |
@@ -98,7 +98,7 @@ A Language Server Protocol server for M1 script (v0.4.1). Integrates `m1-core`, 
 
 ### m1-vscode
 
-The VS Code extension for M1 script (v0.4.1). Bundles the `m1-lsp` binary for macOS (Apple Silicon), Linux (x86-64), and Windows (x86-64). Install from the [Releases page](https://github.com/nedlane/m1-vscode/releases):
+The VS Code extension for M1 script. Bundles the `m1-lsp` binary for macOS (Apple Silicon), Linux (x86-64), and Windows (x86-64). Install from the [Releases page](https://github.com/nedlane/m1-vscode/releases):
 
 ```sh
 code --install-extension m1-vscode-<platform>.vsix
@@ -110,13 +110,9 @@ Features: syntax highlighting, diagnostics, hover, completion, go-to-definition,
 
 The type and symbol model for M1 script. Loads `Project.m1prj` symbol tables (channels, parameters, enums, DBC signals) and exposes them to `m1-lsp` for hover, completion, rename, and inlay hints.
 
-> **Status:** Symbol model and project loader are implemented and integrated into `m1-lsp`. The type-rule diagnostic engine (T-codes) is designed but not yet implemented.
-
 ### m1-fmt
 
 An opinionated code formatter for `.m1scr` files, modelled on `rustfmt`.
-
-> **Status:** Init commit only. The formatter design needs to be written before implementation begins. `m1-lsp` ships a no-op stub in the meantime.
 
 ---
 
@@ -313,8 +309,6 @@ Install in your plugin spec:
 }
 ```
 
-> **Status:** Plugin scaffold in place. Full implementation in progress.
-
 ### telescope-m1.nvim
 
 A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension providing:
@@ -333,8 +327,6 @@ Install alongside `nvim-m1`:
 }
 ```
 
-> **Status:** Extension scaffold in place. Pickers not yet implemented.
-
 ### m1-ci
 
 Reusable GitHub Actions workflows for any M1 script project. Reference the shared workflow:
@@ -349,24 +341,23 @@ jobs:
 Runs: `m1-lint` on all `.m1scr` files, `m1-typecheck` project validation, and a corpus parse gate.
 
 > **Tip:** pin to a release tag once published (for example `@v0.1.0`) to avoid workflow drift.
-> **Status:** Scaffold. Workflows not yet implemented.
 
 ---
 
 ## Architecture
 
 ```text
-tree-sitter-m1        ← grammar (C + Rust bindings)           [Stable]
+tree-sitter-m1        ← grammar (C + Rust bindings)
       ↑
-   m1-core            ← CST helpers + shared diagnostics       [Stable]
+  m1-core            ← CST helpers + shared diagnostics
       ↑
   ┌───┴──────────┬──────────┐
-m1-typecheck   m1-fmt    m1-lint    ← domain libraries         [Scaffold / Stub / Beta]
+m1-typecheck   m1-fmt    m1-lint    ← domain libraries
       ↑                    ↑
       └──────────┬──────────┘
-              m1-lsp         ← LSP server (integrates all)     [Beta]
+             m1-lsp         ← LSP server (integrates all)
                  ↑
-            m1-vscode        ← VS Code extension               [Beta]
+           m1-vscode        ← VS Code extension
 ```
 
 `m1-core` and `m1-typecheck` are library crates. `m1-fmt` and `m1-lint` expose both a CLI and a library API. `m1-lsp` integrates all three behind a single LSP binary.
