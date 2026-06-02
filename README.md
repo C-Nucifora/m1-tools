@@ -28,21 +28,22 @@ vcs pull .. < m1-tools.repos
 
 | Repo | Purpose | Status |
 | --- | --- | --- |
-| [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings | Stable |
-| [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library | Stable |
-| [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics | In development |
-| [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | In development |
-| [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter | In development |
-| [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter | In development |
-| [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension | In development |
+| [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings | **Stable** |
+| [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library | **Stable** |
+| [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (12 rules) | **Beta** |
+| [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | **Beta** |
+| [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension | **Beta** |
+| [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics | **Scaffold** |
+| [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter | **Design needed** |
 
 ### tree-sitter-m1
 
 A [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar for M1 script. Provides:
 
 - Incremental, error-recovering parsing
-- Syntax highlighting queries
+- Syntax highlighting queries (`.scm`)
 - Rust bindings via `m1_tree_sitter`
+- Corpus gate: all 80 EV-M1 production scripts parse with 0 errors (`scripts/check-corpus.sh`)
 
 ### m1-core
 
@@ -53,126 +54,187 @@ use m1_core::{parse, Cst, Node, Kind, Diagnostic, Code, Severity, Range, Positio
 ```
 
 All higher-level tools (`m1-typecheck`, `m1-lsp`, `m1-fmt`, `m1-lint`) depend on this crate.
-
-### m1-typecheck
-
-The type and symbol model for M1 script, built on `m1-core`. Loads the project's
-`Project.m1prj` symbol table (channels, parameters, functions) and infers local
-variable types, surfacing type-rule diagnostics (`T001`–`T011`). It powers
-`m1-lsp`'s hover, completion, rename, and inlay type-hints, and is also available
-as a standalone `nvim-lint` plugin.
-
-### m1-lsp
-
-A Language Server Protocol server for M1 script. Provides diagnostics, hover, go-to-definition, completion, rename, and inlay type-hints to any LSP-capable editor.
-
-### m1-fmt
-
-An opinionated code formatter for `.m1scr` files, similar to `rustfmt` or `black`.
+Tree-sitter is fully confined to this crate — consumers never see it directly.
 
 ### m1-lint
 
-A static analysis tool that enforces style and correctness rules. Rules include line length (88), operator conventions (`eq`/`neq`/`and`/`or`/`not`), trailing whitespace, nesting depth, and cyclomatic complexity.
+A static analysis tool that enforces M1 style and correctness rules. Twelve rules ship in v1:
+
+| Code | Rule |
+| --- | --- |
+| L001 | line-too-long (configurable, default 88) |
+| L002 | trailing-whitespace |
+| L003 | missing-final-newline |
+| L004 | eq-operator-preferred (`==` → `eq`, `!=` → `neq`) |
+| L005 | logical-operator-preferred (`&&` → `and`, `\|\|` → `or`, `!` → `not`) |
+| L006 | float-eq-comparison (heuristic; suppressed when type model is loaded) |
+| L007 | operator-spacing |
+| L008 | nesting-too-deep (configurable, default 4) |
+| L009 | cyclomatic-complexity (configurable, default 10) |
+| L010 | tab-for-indentation |
+| L011 | comment-style |
+| L012 | unused-local |
+
+Configure via `.m1lint.toml` in the project root. Rules can be individually enabled, disabled, and tuned.
+
+### m1-lsp
+
+A Language Server Protocol server for M1 script (v0.4.1). Integrates `m1-core`, `m1-typecheck`, and `m1-lint` behind a single LSP binary. Capabilities:
+
+| Category | Features |
+| --- | --- |
+| Diagnostics | Syntax errors, 12 lint rules, type diagnostics (when project loaded) |
+| Navigation | Go-to-definition, find-all-references, document highlight, workspace symbol search |
+| Editing | Completion (trigger: `.`), signature help, rename with prepare-rename, code actions |
+| Display | Hover, inlay type-hints, semantic tokens (full), folding ranges, document outline |
+| Formatting | `textDocument/formatting` + range formatting (stub — active once `m1-fmt` ships) |
+| Project | Discovers and loads `Project.m1prj` + `.m1cfg` + `.m1dbc`; watches for changes |
+
+> **Note:** Formatting returns no edits until `m1-fmt` is implemented. All other features are active.
+
+### m1-vscode
+
+The VS Code extension for M1 script (v0.4.1). Bundles the `m1-lsp` binary for macOS (Apple Silicon), Linux (x86-64), and Windows (x86-64). Install from the [Releases page](https://github.com/nedlane/m1-vscode/releases):
+
+```sh
+code --install-extension m1-vscode-<platform>.vsix
+```
+
+Features: syntax highlighting, diagnostics, hover, completion, go-to-definition, find references, rename, inlay hints, semantic tokens, code actions, formatting, folding, and document/workspace symbol search.
+
+### m1-typecheck
+
+The type and symbol model for M1 script. Loads `Project.m1prj` symbol tables (channels, parameters, enums, DBC signals) and exposes them to `m1-lsp` for hover, completion, rename, and inlay hints.
+
+> **Status:** Symbol model and project loader are implemented and integrated into `m1-lsp`. The type-rule diagnostic engine (T-codes) is designed but not yet implemented.
+
+### m1-fmt
+
+An opinionated code formatter for `.m1scr` files, modelled on `rustfmt`.
+
+> **Status:** Init commit only. The formatter design needs to be written before implementation begins. `m1-lsp` ships a no-op stub in the meantime.
 
 ---
 
 ## Editor Setup
 
-### Neovim (LazyVim)
+### VS Code
 
-Add the following to your LazyVim plugins (e.g. `~/.config/nvim/lua/plugins/m1.lua`):
+Install the [m1-vscode](https://github.com/nedlane/m1-vscode) extension — it bundles everything. No separate installs required.
+
+### Neovim
+
+Prerequisites: [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter), [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig). Optionally [conform.nvim](https://github.com/stevearc/conform.nvim) and [nvim-lint](https://github.com/mfussenegger/nvim-lint).
+
+Add to your [lazy.nvim](https://github.com/folke/lazy.nvim) plugin spec (e.g. `~/.config/nvim/lua/plugins/m1.lua`):
 
 ```lua
 return {
-    {
-        "C-Nucifora/tree-sitter-m1",
-        dependencies = { "nvim-treesitter/nvim-treesitter" },
-        config = function()
-            local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-            parser_config.m1 = {
-                install_info = {
-                    url = "https://github.com/C-Nucifora/tree-sitter-m1",
-                    files = { "src/parser.c" },
-                    branch = "main",
-                },
-                filetype = "m1",
-            }
-            vim.cmd("TSInstall! m1")
-        end,
+  -- 1. Tree-sitter grammar: syntax highlighting and indentation
+  {
+    "nvim-treesitter/nvim-treesitter",
+    opts = function(_, opts)
+      -- Register the m1 grammar before nvim-treesitter setup
+      local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+      parser_config.m1 = {
+        install_info = {
+          url   = "https://github.com/C-Nucifora/tree-sitter-m1",
+          files = { "src/parser.c", "src/scanner.c" },
+          branch = "main",
+        },
+        filetype = "m1scr",
+      }
+      opts.ensure_installed = opts.ensure_installed or {}
+      vim.list_extend(opts.ensure_installed, { "m1" })
+    end,
+  },
+
+  -- 2. LSP: diagnostics, hover, completion, rename, go-to-definition, inlay hints
+  {
+    "neovim/nvim-lspconfig",
+    config = function()
+      local lspconfig = require("lspconfig")
+      local configs   = require("lspconfig.configs")
+
+      -- Register m1-lsp (not yet upstream in nvim-lspconfig)
+      if not configs.m1_lsp then
+        configs.m1_lsp = {
+          default_config = {
+            cmd              = { "m1-lsp" },   -- must be on $PATH, or use full path
+            filetypes        = { "m1scr" },
+            root_dir         = lspconfig.util.root_pattern("Project.m1prj", ".git"),
+            single_file_support = true,
+          },
+        }
+      end
+      lspconfig.m1_lsp.setup({})
+    end,
+  },
+
+  -- 3. Format-on-save via conform.nvim (no-op until m1-fmt ships)
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters_by_ft = { m1scr = { "m1_fmt" } },
+      formatters = {
+        m1_fmt = {
+          command = "m1-fmt",
+          args    = { "--stdin-filepath", "$FILENAME" },
+          stdin   = true,
+        },
+      },
     },
-    {
-        "C-Nucifora/m1-lsp",
-        build = "cargo build --release",
-        dependencies = { "neovim/nvim-lspconfig" },
-        config = function()
-            require("m1_lsp").setup({})
-        end,
-    },
-    {
-        "C-Nucifora/m1-fmt",
-        build = "cargo build --release",
-        dependencies = { "stevearc/conform.nvim" },
-        config = function()
-            require("m1_fmt").setup({})
-        end,
-    },
-    {
-        "C-Nucifora/m1-lint",
-        build = "cargo build --release",
-        dependencies = { "mfussenegger/nvim-lint" },
-        config = function()
-            require("m1_lint").setup({})
-        end,
-    },
+  },
+
+  -- 4. Standalone lint via nvim-lint (supplements LSP diagnostics)
+  {
+    "mfussenegger/nvim-lint",
+    config = function()
+      local lint = require("lint")
+      lint.linters.m1_lint = {
+        cmd            = "m1-lint",
+        stdin          = true,
+        args           = { "--stdin-filepath", function() return vim.api.nvim_buf_get_name(0) end },
+        stream         = "stdout",
+        ignore_exitcode = true,
+        parser         = require("lint.parser").from_pattern(
+          "([^:]+):(%d+):(%d+): (%a+): %[([LT]%d+)%] (.+)",
+          { "file", "lnum", "col", "severity", "code", "message" }
+        ),
+      }
+      lint.linters_by_ft = { m1scr = { "m1_lint" } }
+      vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost" }, {
+        callback = function() lint.try_lint() end,
+      })
+    end,
+  },
 }
 ```
 
-This gives you:
+Add `.m1scr` file type detection (e.g. in `~/.config/nvim/lua/vim-options.lua`):
 
-- Syntax highlighting and indentation via Tree-sitter
-- Diagnostics, hover, and go-to-definition via `m1-lsp`
-- Format-on-save via `conform.nvim` + `m1-fmt`
-- Lint diagnostics via `nvim-lint` + `m1-lint`
-
-### VS Code
-
-Use the [m1-vscode](https://github.com/nedlane/m1-vscode) extension. It bundles the
-`m1-lsp` server and provides syntax highlighting, diagnostics, hover, formatting,
-go-to-definition, completion, rename, and inlay type-hints — no separate install.
-
-Download the VSIX for your platform from the
-[Releases page](https://github.com/nedlane/m1-vscode/releases) and install it:
-
-```sh
-code --install-extension m1-vscode-linux-x64.vsix
+```lua
+vim.filetype.add({ extension = { m1scr = "m1scr" } })
 ```
-
-Apple-Silicon macOS (`darwin-arm64`) and Windows (`win32-x64`) have their own VSIX.
-Intel-Mac users install the `universal` VSIX and build the server themselves — see
-the [m1-vscode README](https://github.com/nedlane/m1-vscode#intel-macos-x86_64-apple-darwin).
 
 ### Zed
 
-Add to your Zed `settings.json` under `lsp`:
+Add to `settings.json`:
 
 ```json
 {
-    "lsp": {
-        "m1-lsp": {
-            "binary": {
-                "path": "/path/to/m1-lsp/target/release/m1-lsp"
-            }
-        }
-    },
-    "languages": {
-        "M1 Script": {
-            "language_servers": ["m1-lsp"]
-        }
+  "lsp": {
+    "m1-lsp": {
+      "binary": { "path": "/path/to/m1-lsp/target/release/m1-lsp" }
     }
+  },
+  "languages": {
+    "M1 Script": { "language_servers": ["m1-lsp"] }
+  }
 }
 ```
 
-Tree-sitter grammar support in Zed requires the grammar to be registered; follow the [Zed extension guide](https://zed.dev/docs/extensions/languages) using the `tree-sitter-m1` repo as the grammar source.
+Tree-sitter grammar support in Zed requires the grammar to be registered; follow the [Zed extension guide](https://zed.dev/docs/extensions/languages) using `tree-sitter-m1` as the grammar source.
 
 ### Helix
 
@@ -180,47 +242,46 @@ Add to `~/.config/helix/languages.toml`:
 
 ```toml
 [[language]]
-name = "m1scr"
-scope = "source.m1scr"
-file-types = ["m1scr"]
-roots = [".m1prj"]
+name             = "m1scr"
+scope            = "source.m1scr"
+file-types       = ["m1scr"]
+roots            = ["Project.m1prj"]
 language-servers = ["m1-lsp"]
+formatter        = { command = "m1-fmt", args = ["--stdin-filepath", "%"] }
 
 [language-server.m1-lsp]
 command = "/path/to/m1-lsp/target/release/m1-lsp"
 ```
 
-Place the `tree-sitter-m1` grammar under `~/.config/helix/runtime/grammars/` following Helix's [adding languages guide](https://docs.helix-editor.com/guides/adding_languages.html).
+Place the Tree-sitter grammar under `~/.config/helix/runtime/grammars/` following Helix's [adding languages guide](https://docs.helix-editor.com/guides/adding_languages.html).
 
 ### Emacs (eglot)
 
 ```elisp
-(add-to-list 'eglot-server-programs
-             '(m1scr-mode . ("/path/to/m1-lsp/target/release/m1-lsp")))
-
-(add-hook 'm1scr-mode-hook 'eglot-ensure)
+(add-to-list 'auto-mode-alist '("\\.m1scr\\'" . prog-mode))
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(prog-mode . ("/path/to/m1-lsp/target/release/m1-lsp"))))
+(add-hook 'prog-mode-hook
+  (lambda ()
+    (when (string= (file-name-extension (or buffer-file-name "")) "m1scr")
+      (eglot-ensure))))
 ```
 
 ---
 
 ## Building from Source
 
-All tools require Rust (stable). Install via [rustup](https://rustup.rs/).
+All Rust tools require stable Rust via [rustup](https://rustup.rs/).
 
 ```sh
-# Clone whichever tools you need
-git clone https://github.com/C-Nucifora/tree-sitter-m1
-git clone https://github.com/C-Nucifora/m1-core
 git clone https://github.com/C-Nucifora/m1-lsp
-git clone https://github.com/C-Nucifora/m1-fmt
-git clone https://github.com/C-Nucifora/m1-lint
-
-# Build (example for m1-lsp)
 cd m1-lsp
 cargo build --release
+# Binary: ./target/release/m1-lsp
 ```
 
-`tree-sitter-m1` additionally requires Node.js and the Tree-sitter CLI for grammar generation:
+`tree-sitter-m1` additionally requires Node.js and the Tree-sitter CLI:
 
 ```sh
 npm install -g tree-sitter-cli
@@ -234,17 +295,20 @@ cargo build --release
 ## Architecture
 
 ```text
-tree-sitter-m1   ← grammar (C + Rust bindings)
+tree-sitter-m1        ← grammar (C + Rust bindings)           [Stable]
       ↑
-   m1-core       ← CST helpers + diagnostics
+   m1-core            ← CST helpers + shared diagnostics       [Stable]
       ↑
-  ┌───┴──────────┬────────┐
-m1-typecheck   m1-fmt   m1-lint   ← libraries built on m1-core
-      ↑
-   m1-lsp   ← integrates m1-core + m1-typecheck + m1-fmt + m1-lint
+  ┌───┴──────────┬──────────┐
+m1-typecheck   m1-fmt    m1-lint    ← domain libraries         [Scaffold / Stub / Beta]
+      ↑                    ↑
+      └──────────┬──────────┘
+              m1-lsp         ← LSP server (integrates all)     [Beta]
+                 ↑
+            m1-vscode        ← VS Code extension               [Beta]
 ```
 
-`m1-core` and `m1-typecheck` are library crates; `m1-fmt` and `m1-lint` expose both a CLI and an editor plugin API, and `m1-lsp` integrates the type model, formatter, and linter behind a single LSP server.
+`m1-core` and `m1-typecheck` are library crates. `m1-fmt` and `m1-lint` expose both a CLI and a library API. `m1-lsp` integrates all three behind a single LSP binary.
 
 ---
 
