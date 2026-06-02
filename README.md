@@ -35,6 +35,9 @@ vcs pull .. < m1-tools.repos
 | [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension | **Beta** |
 | [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics | **Scaffold** |
 | [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter | **Design needed** |
+| [nvim-m1](https://github.com/C-Nucifora/nvim-m1) | Neovim plugin (LSP + tree-sitter + lint + fmt) | **Scaffold** |
+| [telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) | Telescope extension: symbol picker, component browser | **Scaffold** |
+| [m1-ci](https://github.com/C-Nucifora/m1-ci) | Reusable GitHub Actions workflows for M1 projects | **Scaffold** |
 
 ### tree-sitter-m1
 
@@ -289,6 +292,36 @@ cd tree-sitter-m1
 tree-sitter generate
 cargo build --release
 ```
+
+### nvim-m1
+
+A [lazy.nvim](https://github.com/folke/lazy.nvim) plugin that wires tree-sitter, nvim-lspconfig, conform.nvim, and nvim-lint together in a single `require("nvim-m1").setup({})` call — the Neovim equivalent of m1-vscode.
+
+> **Status:** Plugin scaffold in place. Full implementation in progress.
+
+### telescope-m1.nvim
+
+A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension providing:
+- **Workspace symbols** — fuzzy-search channels, parameters, and enums in the loaded project
+- **Component browser** — browse the `.m1prj` component hierarchy
+- **Lint rule picker** — toggle or navigate `m1-lint` rules
+
+> **Status:** Extension scaffold in place. Pickers not yet implemented.
+
+### m1-ci
+
+Reusable GitHub Actions workflows for any M1 script project. Zero config — just reference the workflow:
+
+```yaml
+# .github/workflows/check.yml
+jobs:
+  m1-check:
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@main
+```
+
+Runs: `m1-lint` on all `.m1scr` files, `m1-typecheck` project validation, corpus parse gate.
+
+> **Status:** Scaffold. Workflows not yet implemented.
 
 ---
 
