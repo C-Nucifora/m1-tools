@@ -7,6 +7,10 @@ repositories:
     type: git
     url: https://github.com/C-Nucifora/m1-core.git
     version: main
+  m1-workspace:
+    type: git
+    url: https://github.com/nedlane/m1-workspace.git
+    version: main
   m1-typecheck:
     type: git
     url: https://github.com/C-Nucifora/m1-typecheck.git

@@ -30,6 +30,7 @@ vcs pull .. < m1-tools.repos
 | --- | --- | --- |
 | [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1) | Tree-sitter grammar + Rust bindings | **Stable** |
 | [m1-core](https://github.com/C-Nucifora/m1-core) | CST helpers and diagnostics library | **Stable** |
+| [m1-workspace](https://github.com/nedlane/m1-workspace) | Shared filesystem/path conventions library that the tools depend on | **Stable** |
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (12 rules) | **Beta** |
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language Server Protocol implementation | **Beta** |
 | [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension | **Beta** |
