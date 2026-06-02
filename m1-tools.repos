@@ -27,3 +27,15 @@ repositories:
     type: git
     url: https://github.com/nedlane/m1-vscode.git
     version: main
+  nvim-m1:
+    type: git
+    url: https://github.com/C-Nucifora/nvim-m1.git
+    version: main
+  telescope-m1.nvim:
+    type: git
+    url: https://github.com/C-Nucifora/telescope-m1.nvim.git
+    version: main
+  m1-ci:
+    type: git
+    url: https://github.com/C-Nucifora/m1-ci.git
+    version: main
