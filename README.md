@@ -297,20 +297,46 @@ cargo build --release
 
 A [lazy.nvim](https://github.com/folke/lazy.nvim) plugin that wires tree-sitter, nvim-lspconfig, conform.nvim, and nvim-lint together in a single `require("nvim-m1").setup({})` call — the Neovim equivalent of m1-vscode.
 
+Install in your plugin spec:
+
+```lua
+{
+  "C-Nucifora/nvim-m1",
+  dependencies = {
+    "nvim-treesitter/nvim-treesitter",
+    "neovim/nvim-lspconfig",
+    "stevearc/conform.nvim",
+    "mfussenegger/nvim-lint",
+  },
+  opts = {},
+}
+```
+
 > **Status:** Plugin scaffold in place. Full implementation in progress.
 
 ### telescope-m1.nvim
 
 A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension providing:
+
 - **Workspace symbols** — fuzzy-search channels, parameters, and enums in the loaded project
 - **Component browser** — browse the `.m1prj` component hierarchy
 - **Lint rule picker** — toggle or navigate `m1-lint` rules
+
+Install alongside `nvim-m1`:
+
+```lua
+{
+  "C-Nucifora/telescope-m1.nvim",
+  dependencies = { "nvim-telescope/telescope.nvim", "C-Nucifora/nvim-m1" },
+  opts = {},
+}
+```
 
 > **Status:** Extension scaffold in place. Pickers not yet implemented.
 
 ### m1-ci
 
-Reusable GitHub Actions workflows for any M1 script project. Zero config — just reference the workflow:
+Reusable GitHub Actions workflows for any M1 script project. Reference the shared workflow:
 
 ```yaml
 # .github/workflows/check.yml
@@ -319,8 +345,9 @@ jobs:
     uses: C-Nucifora/m1-ci/.github/workflows/check.yml@main
 ```
 
-Runs: `m1-lint` on all `.m1scr` files, `m1-typecheck` project validation, corpus parse gate.
+Runs: `m1-lint` on all `.m1scr` files, `m1-typecheck` project validation, and a corpus parse gate.
 
+> **Tip:** pin to a release tag once published (for example `@v0.1.0`) to avoid workflow drift.
 > **Status:** Scaffold. Workflows not yet implemented.
 
 ---
