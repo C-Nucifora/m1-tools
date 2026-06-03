@@ -36,6 +36,7 @@ vcs pull .. < m1-tools.repos
 | [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension |
 | [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model and type-rule diagnostics |
 | [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter |
+| [m1-project](https://github.com/nedlane/m1-project) | Validated CLI editor for `Project.m1prj` (create channels, set permissions/unit/type, set call rate) — invoked by the editors |
 | [nvim-m1](https://github.com/C-Nucifora/nvim-m1) | Neovim plugin (LSP + tree-sitter + lint + fmt) |
 | [telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) | Telescope extension: symbol picker, component browser |
 | [m1-ci](https://github.com/C-Nucifora/m1-ci) | Reusable GitHub Actions workflows for M1 projects |
