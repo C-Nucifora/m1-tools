@@ -48,7 +48,7 @@ A [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar for M1 scrip
 - Incremental, error-recovering parsing
 - Editor queries (`.scm`): highlights, folds, indents, injections, locals, textobjects
 - Rust bindings via `m1_tree_sitter`
-- Corpus gate: every script in the real-vehicle corpus must parse with 0 errors (`scripts/check-corpus.sh`, run locally where the corpus exists)
+- Corpus gate: every script in the example corpus parses with 0 errors (`scripts/check-corpus.sh`)
 
 ### m1-core
 
@@ -168,10 +168,21 @@ toolchain for your platform on install/update (no manual binary management):
 }
 ```
 
-Run `:checkhealth nvim-m1` to verify the setup, and add
-[telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim) for
-symbol/component/rule pickers. See the
-[nvim-m1 README](https://github.com/C-Nucifora/nvim-m1) for all options.
+Run `:checkhealth nvim-m1` to verify the setup. For symbol, component, and rule
+pickers, add the [telescope-m1.nvim](https://github.com/C-Nucifora/telescope-m1.nvim)
+extension alongside it:
+
+```lua
+{
+  "C-Nucifora/telescope-m1.nvim",
+  dependencies = { "nvim-telescope/telescope.nvim", "C-Nucifora/nvim-m1" },
+  opts = {},
+}
+```
+
+See the [nvim-m1 README](https://github.com/C-Nucifora/nvim-m1) for all options.
+
+**Want just one piece?** Each tool also ships a standalone Neovim plugin, documented in that tool's repo: [tree-sitter-m1](https://github.com/C-Nucifora/tree-sitter-m1#neovim-setup) (grammar), [m1-lsp](https://github.com/C-Nucifora/m1-lsp/blob/main/editors/nvim/README.md) (LSP), [m1-fmt](https://github.com/C-Nucifora/m1-fmt/blob/main/editors/nvim/README.md) (formatter), and [m1-lint](https://github.com/C-Nucifora/m1-lint/blob/main/editors/nvim/README.md) (linter). `nvim-m1` is the supported way to combine them.
 
 ### Zed
 
@@ -246,30 +257,8 @@ tree-sitter generate
 cargo build --release
 ```
 
-### nvim-m1
-
-The Neovim plugin — see [Editor Setup → Neovim](#neovim) for the install
-snippet, or the [nvim-m1 README](https://github.com/C-Nucifora/nvim-m1) for
-every option (`:checkhealth nvim-m1`, `:M1Install`, statusline/codelens
-helpers, project-editing commands).
-
-### telescope-m1.nvim
-
-A [Telescope](https://github.com/nvim-telescope/telescope.nvim) extension providing:
-
-- **Workspace symbols** — fuzzy-search channels, parameters, and enums in the loaded project
-- **Component browser** — browse the `.m1prj` component hierarchy
-- **Lint rule picker** — toggle or navigate `m1-lint` rules
-
-Install alongside `nvim-m1`:
-
-```lua
-{
-  "C-Nucifora/telescope-m1.nvim",
-  dependencies = { "nvim-telescope/telescope.nvim", "C-Nucifora/nvim-m1" },
-  opts = {},
-}
-```
+> The Neovim plugins (`nvim-m1`, `telescope-m1.nvim`) are installed through your
+> plugin manager, not built from source — see [Editor Setup → Neovim](#neovim).
 
 ### m1-ci
 
