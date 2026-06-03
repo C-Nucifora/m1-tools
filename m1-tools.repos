@@ -27,6 +27,10 @@ repositories:
     type: git
     url: https://github.com/C-Nucifora/m1-lint.git
     version: main
+  m1-project:
+    type: git
+    url: https://github.com/nedlane/m1-project.git
+    version: main
   m1-vscode:
     type: git
     url: https://github.com/nedlane/m1-vscode.git
