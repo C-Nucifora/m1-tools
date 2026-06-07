@@ -117,6 +117,16 @@ An opinionated code formatter for `.m1scr` files, modelled on `rustfmt`.
 
 ---
 
+## Command-line tools
+
+`m1-fmt`, `m1-lint`, and `m1-typecheck` run standalone on `.m1scr` scripts
+(no editor required) — ideal for CI. See **[docs/cli.md](docs/cli.md)** for a
+per-tool quickstart and the shared conventions (exit codes, `--version`,
+`--help`, and the layered `m1-tools.toml` / `.m1fmt.toml` / `.m1lint.toml`
+configuration).
+
+---
+
 ## Editor Setup
 
 ### VS Code
