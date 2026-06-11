@@ -279,7 +279,7 @@ Reusable GitHub Actions workflows for any M1 script project. Reference the share
 # .github/workflows/check.yml
 jobs:
   m1-check:
-    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.15.2
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.17.0
 ```
 
 Runs `m1-fmt --check`, `m1-lint`, `m1-typecheck`, and `m1-project validate`

@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs of the same branch/PR: every push otherwise queues
+# a full duplicate job matrix (#27).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: lint
@@ -13,7 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Run markdownlint
-        run: npx markdownlint-cli README.md --config .markdownlint.json
+        # Glob the whole docs surface so a newly added .md is guarded
+        # automatically, not silently skipped (#25).
+        run: npx markdownlint-cli "**/*.md" --ignore node_modules --config .markdownlint.json
 
   link-check:
     name: link-check
@@ -23,7 +31,30 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --retry-wait-time 5 --max-retries 1 README.md
+          args: --retry-wait-time 5 --max-retries 1 README.md docs/
           fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  m1-ci-pin:
+    name: m1-ci pin freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: README pins the latest m1-ci release
+        # The README's example snippet pins check.yml@vX.Y.Z. Nothing else
+        # guards it, so it goes stale the moment m1-ci releases (#26) — fail
+        # here so the bump becomes part of every m1-ci release cascade,
+        # like tools.env.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pinned=$(grep -oP 'check\.yml@\Kv[0-9.]+' README.md | sort -u)
+          latest=$(gh api repos/C-Nucifora/m1-ci/releases/latest -q .tag_name)
+          if [ "$(echo "$pinned" | wc -l)" -ne 1 ]; then
+            echo "README pins multiple m1-ci tags: $pinned"; exit 1
+          fi
+          if [ "$pinned" != "$latest" ]; then
+            echo "README pins m1-ci $pinned but the latest release is $latest"; exit 1
+          fi
+          echo "README pin $pinned matches latest m1-ci release"
