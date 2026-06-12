@@ -105,8 +105,11 @@ same as the corresponding editor setting.
 
 ### Configuration & precedence
 
-The script-facing tools (and the LSP that backs the editors) read a shared,
-layered configuration. Lowest layer first; later layers override earlier ones:
+The script-facing tools and the LSP that backs the editors read the same
+configuration files, but layer them differently. Lowest layer first; later
+layers override earlier ones.
+
+**CLI tools:**
 
 1. built-in defaults (manual-conformant: tabs, Allman, etc.);
 2. the unified **`m1-tools.toml`** (`[format]` / `[lint]` / `[diagnostics]`),
@@ -115,5 +118,12 @@ layered configuration. Lowest layer first; later layers override earlier ones:
 3. the tool-specific file — **`.m1fmt.toml`** for `m1-fmt`, **`.m1lint.toml`**
    for `m1-lint` — which overrides the unified file;
 4. explicit command-line flags, which win over everything.
+
+**Editors (m1-lsp):**
+
+1. built-in defaults;
+2. editor settings (VS Code `m1.*` / nvim-m1 `settings`) — the personal layer;
+3. the workspace **`m1-tools.toml`** — the committed project config
+   deliberately outranks personal editor settings so the team style wins.
 
 `m1-lsp --scaffold-config` writes a starter `m1-tools.toml`.
