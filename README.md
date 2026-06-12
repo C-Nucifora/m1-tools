@@ -181,8 +181,18 @@ Place the grammar under `~/.config/helix/runtime/grammars/` per Helix's
 Reference the [m1-ci](https://github.com/C-Nucifora/m1-ci) reusable workflow
 (pin a release tag, not `@main`) to run `m1-fmt --check`, `m1-lint`,
 `m1-typecheck`, and `m1-project validate` with pinned tool versions, inline
-PR annotations, and optional SARIF upload. The same gates run locally as
-pre-commit hooks at the same pinned versions.
+PR annotations, and optional SARIF upload:
+
+```yaml
+# .github/workflows/check.yml
+jobs:
+  m1-check:
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.19.0
+```
+
+The same gates run locally as pre-commit hooks at the same pinned versions —
+see the [m1-ci README](https://github.com/C-Nucifora/m1-ci). (CI on this repo
+checks that the tag above is the latest m1-ci release.)
 
 ## Building from source
 

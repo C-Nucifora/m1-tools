@@ -29,5 +29,9 @@ diagram, cross-tool conventions, editor setup).
   repo and links out; feature lists live in each tool's own README so they
   can't drift here.
 - **Version pins in examples go stale.** Prefer "pin the latest release"
-  phrasing over literal `@vX.Y.Z` tags in docs; where a literal pin is
-  unavoidable, expect to bump it as part of release cascades.
+  phrasing over literal `@vX.Y.Z` tags in docs — with one exception: the
+  README's m1-ci usage example carries a literal `check.yml@vX.Y.Z` pin on
+  purpose, and the `m1-ci pin freshness` CI job fails when it lags the
+  latest m1-ci release. Bumping it is part of every m1-ci release cascade.
+- **CI also runs markdownlint and a link check** over all Markdown here;
+  `.markdownlintignore` exempts the `CLAUDE.md` pointer file.
