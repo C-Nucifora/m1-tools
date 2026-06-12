@@ -29,6 +29,22 @@ vcs import .. < m1-tools.repos     # clone all sub-repos as siblings
 vcs pull .. < m1-tools.repos       # later: update them all to latest main
 ```
 
+The manifest tracks every repo at **`main`** — the right default for working
+*on* the toolchain, but not what consumers run: CI and the pre-commit hooks
+install the frozen versions pinned in
+[m1-ci/tools.env](https://github.com/C-Nucifora/m1-ci/blob/main/tools.env).
+To reproduce that published toolchain instead (e.g. to chase a "passes
+locally, fails in CI" mismatch), generate a tag-pinned manifest on demand:
+
+```sh
+scripts/release-manifest.sh > m1-tools-release.repos
+mkdir released && cd released
+vcs import .. < ../m1-tools-release.repos
+```
+
+(The four CLI tools resolve to the `tools.env` pins; everything else to its
+latest release. Generated, not committed, so it cannot go stale in-tree.)
+
 ## The tools
 
 | Repo | Purpose |
@@ -77,13 +93,23 @@ the default.
 ## Configuration
 
 All the tools and editors read one workspace-level **`m1-tools.toml`** at the
-project root (`m1-lsp --scaffold-config` writes a starter). Precedence,
-lowest first:
+project root (`m1-lsp --scaffold-config` writes a starter). Precedence is
+lowest-first and differs between the CLIs and the editors:
+
+**CLI tools** (`m1-fmt`, `m1-lint`, `m1-typecheck`, …):
 
 1. built-in defaults (the M1 manual's style),
 2. `m1-tools.toml` — `[format]`, `[lint]`, `[diagnostics]` sections,
 3. tool-specific files (`.m1fmt.toml`, `.m1lint.toml`),
-4. CLI flags / editor settings.
+4. CLI flags.
+
+**Editors** (VS Code / Neovim via `m1-lsp`):
+
+1. built-in defaults,
+2. editor settings (VS Code `m1.*` settings / nvim-m1 `settings`),
+3. the workspace `m1-tools.toml` — a committed project config deliberately
+   wins over personal editor settings, so a team's style is what everyone's
+   editor enforces.
 
 See [docs/cli.md](docs/cli.md#configuration--precedence) for the details and
 shared CLI conventions (exit codes, output formats).
