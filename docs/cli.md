@@ -1,9 +1,10 @@
 # M1 CLIs — quickstart & conventions
 
-The toolchain ships six standalone command-line tools that work on M1
-projects without an editor. They are the same engines the editor plugins drive
-(over LSP or by spawning the CLI), so what you see in CI matches what you see
-in your editor.
+The toolchain ships five standalone command-line tools that work on M1
+projects without an editor, plus `m1-cfg-export` which ships bundled with
+`m1-typecheck` rather than as a separate release. All six are the same engines
+the editor plugins drive (over LSP or by spawning the CLI), so what you see in
+CI matches what you see in your editor.
 
 | Tool | Does | Typical use |
 | --- | --- | --- |
