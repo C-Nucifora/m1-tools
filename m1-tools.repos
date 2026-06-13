@@ -15,6 +15,10 @@ repositories:
     type: git
     url: https://github.com/C-Nucifora/m1-typecheck.git
     version: main
+  m1-doc:
+    type: git
+    url: https://github.com/C-Nucifora/m1-doc.git
+    version: main
   m1-lsp:
     type: git
     url: https://github.com/C-Nucifora/m1-lsp.git

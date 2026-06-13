@@ -55,6 +55,7 @@ latest release. Generated, not committed, so it cannot go stale in-tree.)
 | [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter |
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (`m1-lint --rules` for the catalogue) |
 | [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Symbol model + type diagnostics (`--rules` for the catalogue) |
+| [m1-doc](https://github.com/C-Nucifora/m1-doc) | Documentation generator: Markdown/HTML reference from a project |
 | [m1-project](https://github.com/nedlane/m1-project) | Validated CLI editor for `Project.m1prj` |
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language server integrating the above |
 | [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension |
@@ -71,9 +72,9 @@ tree-sitter-m1                     ← grammar (C + Rust bindings)
       ↑
   m1-core      m1-workspace        ← CST helpers + diagnostics; shared fs/config/path conventions
       ↑             ↑
-  ┌───┴───────┬─────┴────┬─────────────┐
-m1-typecheck  m1-fmt   m1-lint   m1-project   ← domain libraries / CLIs
-      ↑          ↑        ↑           ↑
+  ┌───┴───────┬─────┴────┬─────────────┬──────────┐
+m1-typecheck  m1-fmt   m1-lint   m1-project   m1-doc   ← domain libraries / CLIs
+      ↑          ↑        ↑           ↑           ↑       (m1-doc also reads m1-typecheck's symbol model)
       └──────────┴───┬────┘           │ (spawned by the editors)
                   m1-lsp              │      ← LSP server (integrates all)
                      ↑                │
