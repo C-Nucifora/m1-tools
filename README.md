@@ -200,7 +200,7 @@ scope            = "source.m1scr"
 file-types       = ["m1scr"]
 roots            = ["Project.m1prj"]
 language-servers = ["m1-lsp"]
-formatter        = { command = "m1-fmt", args = ["--stdin-filepath", "%"] }
+formatter        = { command = "m1-fmt" }
 
 [language-server.m1-lsp]
 command = "/path/to/m1-lsp"
@@ -233,7 +233,7 @@ PR annotations, and optional SARIF upload:
 # .github/workflows/check.yml
 jobs:
   m1-check:
-    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.20.1
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.21.0
 ```
 
 The same gates run locally as pre-commit hooks at the same pinned versions —
