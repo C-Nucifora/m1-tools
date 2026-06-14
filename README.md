@@ -67,22 +67,41 @@ Each repo's README covers its own features; this repo is the map.
 
 ## Architecture
 
-```text
-tree-sitter-m1                     ← grammar (C + Rust bindings)
-      ↑
-  m1-core      m1-workspace        ← CST helpers + diagnostics; shared fs/config/path conventions
-      ↑             ↑
-  ┌───┴───────┬─────┴────┬─────────────┬──────────┐
-m1-typecheck  m1-fmt   m1-lint   m1-project   m1-doc   ← domain libraries / CLIs
-      ↑          ↑        ↑           ↑           ↑       (m1-doc also reads m1-typecheck's symbol model)
-      └──────────┴───┬────┘           │ (spawned by the editors)
-                  m1-lsp              │      ← LSP server (integrates all)
-                     ↑                │
-        ┌────────────┼────────────────┘
-   m1-vscode   nvim-m1 (+ telescope-m1.nvim)  ← editor clients
-                     ·
-                  m1-ci               ← reusable CI for M1 script projects
+```mermaid
+%% Arrows point downstream — from a crate to the repos that consume it.
+%% Repos depend on each other via versioned git tags, so a release
+%% propagates down this graph through consumer-bump PRs.
+graph TD
+    ts["tree-sitter-m1<br/>grammar (C + Rust bindings)"]
+    core["m1-core<br/>CST helpers + diagnostics"]
+    ws["m1-workspace<br/>shared fs / config / path conventions"]
+    tc["m1-typecheck"]
+    fmt["m1-fmt"]
+    lint["m1-lint"]
+    proj["m1-project"]
+    doc["m1-doc"]
+    lsp["m1-lsp<br/>LSP server — integrates all"]
+    vscode["m1-vscode"]
+    nvim["nvim-m1<br/>(+ telescope-m1.nvim)"]
+    ci["m1-ci<br/>reusable CI for M1 script projects"]
+
+    ts --> core
+    core --> tc & fmt & lint & proj & doc
+    ws --> tc & fmt & lint & proj & doc
+    tc -->|symbol model| doc
+    tc --> lsp
+    fmt --> lsp
+    lint --> lsp
+    lsp --> vscode & nvim
+    proj -->|spawned by the editors| vscode & nvim
 ```
+
+The layers above are: **tree-sitter-m1** (grammar) → **m1-core** /
+**m1-workspace** (shared libraries) → the **domain libraries / CLIs**
+(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-doc) → **m1-lsp** (the language
+server that integrates them) → the **editor clients** (m1-vscode, nvim-m1).
+**m1-ci** is standalone: reusable CI for M1 *script* projects, not a build-time
+dependency of the toolchain.
 
 Repos depend on each other via **versioned git tags** (none are on
 crates.io), so every repo builds from a standalone clone; consumer-bump PRs
