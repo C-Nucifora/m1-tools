@@ -136,6 +136,14 @@ shared CLI conventions (exit codes, output formats).
 
 ## Editor setup
 
+`m1-lsp` serves not just `.m1scr` scripts but the project file
+`Project.m1prj` too — channel/parameter rename from a `<Component>`
+declaration and document links from the project to its backing scripts.
+Register the `.m1prj` extension with `m1-lsp` (as its own XML-ish
+language/mode — don't reuse the `.m1scr` grammar) to get these features, not
+just script-file diagnostics. The snippets below do this; the Neovim plugin
+does it by default via `attach_m1prj`.
+
 ### VS Code
 
 Install [m1-vscode](https://github.com/nedlane/m1-vscode) from its Releases
@@ -181,12 +189,15 @@ Add to `settings.json`:
     }
   },
   "languages": {
-    "M1 Script": { "language_servers": ["m1-lsp"] }
+    "M1 Script": { "language_servers": ["m1-lsp"] },
+    "M1 Project": { "language_servers": ["m1-lsp"] }
   }
 }
 ```
 
-Grammar support requires registering `tree-sitter-m1` per the
+`"M1 Project"` is the `.m1prj` language (XML-ish, no `m1scr` grammar) and
+gives you `Project.m1prj` rename + document links. Grammar support for
+scripts requires registering `tree-sitter-m1` per the
 [Zed extension guide](https://zed.dev/docs/extensions/languages).
 
 ### Helix
@@ -202,6 +213,14 @@ roots            = ["Project.m1prj"]
 language-servers = ["m1-lsp"]
 formatter        = { command = "m1-fmt" }
 
+# Serve Project.m1prj too (channel/parameter rename + document links).
+# Its own language — no source.m1scr grammar scope, no m1-fmt formatter.
+[[language]]
+name             = "m1prj"
+file-types       = ["m1prj"]
+roots            = ["Project.m1prj"]
+language-servers = ["m1-lsp"]
+
 [language-server.m1-lsp]
 command = "/path/to/m1-lsp"
 ```
@@ -213,13 +232,18 @@ Place the grammar under `~/.config/helix/runtime/grammars/` per Helix's
 
 ```elisp
 (add-to-list 'auto-mode-alist '("\\.m1scr\\'" . prog-mode))
+;; Serve Project.m1prj too (rename + document links). It's XML, so use
+;; nxml-mode rather than the script grammar/prog-mode.
+(add-to-list 'auto-mode-alist '("\\.m1prj\\'" . nxml-mode))
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
-               '(prog-mode . ("/path/to/m1-lsp"))))
-(add-hook 'prog-mode-hook
-  (lambda ()
-    (when (string= (file-name-extension (or buffer-file-name "")) "m1scr")
-      (eglot-ensure))))
+               '((prog-mode nxml-mode) . ("/path/to/m1-lsp"))))
+(dolist (hook '(prog-mode-hook nxml-mode-hook))
+  (add-hook hook
+    (lambda ()
+      (when (member (file-name-extension (or buffer-file-name ""))
+                    '("m1scr" "m1prj"))
+        (eglot-ensure)))))
 ```
 
 ## Continuous integration
