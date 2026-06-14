@@ -1,11 +1,25 @@
-# Cloned workspace repos (vcs import output)
+# Cloned workspace repos (vcs import output).
+# This list mirrors m1-tools.repos — keep the two in sync when a repo is
+# added to or renamed in the ecosystem (see AGENTS.md).
 tree-sitter-m1/
 m1-core/
+m1-workspace/
 m1-typecheck/
+m1-doc/
 m1-lsp/
 m1-fmt/
 m1-lint/
+m1-project/
 m1-vscode/
+nvim-m1/
+telescope-m1.nvim/
+m1-ci/
+
+# Tag-pinned release reproduction (scripts/release-manifest.sh).
+# Anchored so the documented `released/ + vcs import` flow stays clean
+# regardless of which repos it clones.
+/released/
+/m1-tools-release.repos
 
 # OS
 .DS_Store
