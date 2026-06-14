@@ -45,13 +45,13 @@ for line in open(sys.argv[1]):
     elif stripped.startswith("url:") and name:
         print(f"{name}\t{stripped.split(None, 1)[1]}")
 PY
-  case "$name" in
-    m1-fmt) tag=$(pin_for M1_FMT_VERSION) ;;
-    m1-lint) tag=$(pin_for M1_LINT_VERSION) ;;
-    m1-typecheck) tag=$(pin_for M1_TYPECHECK_VERSION) ;;
-    m1-project) tag=$(pin_for M1_PROJECT_VERSION) ;;
-    *) tag="" ;;
-  esac
+  # Derive the tools.env pin variable from the repo name, mirroring m1-ci's
+  # naming convention (m1-fmt -> M1_FMT_VERSION): uppercase and map '-' to '_'.
+  # pin_for returns empty for an unpinned repo, so anything without a pin falls
+  # through to releases/latest — and any tool that *gains* a pin later (e.g. an
+  # eventual M1_DOC_VERSION) is picked up automatically, no list to keep in sync.
+  var="$(printf '%s' "$name" | tr 'a-z-' 'A-Z_')_VERSION"
+  tag=$(pin_for "$var")
   if [ -z "$tag" ]; then
     repo="${url#https://github.com/}"
     repo="${repo%.git}"
