@@ -55,7 +55,24 @@ PY
   if [ -z "$tag" ]; then
     repo="${url#https://github.com/}"
     repo="${repo%.git}"
-    tag=$(gh api "repos/$repo/releases/latest" --jq .tag_name 2>/dev/null || echo "")
+    # Resolve the latest release tag — but distinguish "no release yet" (a
+    # legitimate 404, fall through to main) from a transient failure (rate
+    # limit, 5xx, auth). Collapsing both into "" would let a flaky run emit a
+    # main-pinned manifest with exit 0 — the exact "works for me != works for
+    # users" divergence this script exists to prevent. A unique mktemp file
+    # avoids clobbering a concurrent run's stderr capture.
+    gherr="$(mktemp "${TMPDIR:-/tmp}/release-manifest.gherr.XXXXXX")"
+    if tag=$(gh api "repos/$repo/releases/latest" --jq .tag_name 2>"$gherr"); then
+      :
+    elif grep -q '(HTTP 404)' "$gherr"; then
+      tag=""
+    else
+      echo "error: gh api failed resolving the latest release for $name ($repo):" >&2
+      cat "$gherr" >&2
+      rm -f "$gherr"
+      exit 1
+    fi
+    rm -f "$gherr"
   fi
   if [ -z "$tag" ]; then
     echo "warning: no release found for $name; keeping main" >&2
