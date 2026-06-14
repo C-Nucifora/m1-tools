@@ -16,8 +16,11 @@ diagram, cross-tool conventions, editor setup).
 
 - **`m1-tools.repos` is the source of truth for the checkout layout.** Every
   listed repo is cloned as a sibling of `m1-tools` on `main`. Adding a repo
-  to the ecosystem means adding it here, to the README table, and to the
-  architecture diagram.
+  to the ecosystem means adding it here, to the README table, to the
+  architecture diagram, and to the `.gitignore` sibling-repo list (which
+  mirrors this manifest so `vcs import` output stays untracked). The
+  `released/` + `m1-tools-release.repos` artifacts of the tag-pinned release
+  flow are ignored separately and need no per-repo edit.
 - **Cross-tool conventions documented here must match the tools.** The
   config-precedence story (defaults < `m1-tools.toml` < tool-specific file <
   CLI flags) and the manual-by-default style policy are ecosystem-wide
