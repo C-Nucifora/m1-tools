@@ -36,6 +36,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  release-script:
+    name: release-manifest script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: shellcheck scripts
+        # release-manifest.sh is the only executable logic in the repo; lint it
+        # so shell foot-guns are caught here, not in a release cascade.
+        run: shellcheck scripts/*.sh
+      - name: release-manifest behavioural tests
+        # Guards the 404-vs-transient-failure contract of release-manifest.sh
+        # (a 404 falls through to main; a rate-limit/5xx/auth error must NOT
+        # silently emit a main-pinned manifest). The suite stubs gh + curl on
+        # PATH, so no token or network is needed.
+        run: bash scripts/release-manifest.test.sh
+
   m1-ci-pin:
     name: m1-ci pin freshness
     runs-on: ubuntu-latest
