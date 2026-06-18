@@ -53,6 +53,22 @@ m1-typecheck --project Project.m1prj Scripts/Engine.Update.m1scr
 m1-typecheck --project Project.m1prj --select T030 Scripts/*.m1scr
 ```
 
+### Generate documentation
+
+```sh
+m1-doc --project Project.m1prj                  # ./m1-doc/ (Markdown + HTML, the default Both)
+m1-doc --project Project.m1prj --format html --out site    # HTML only, into ./site/
+m1-doc --project Project.m1prj --source-base https://github.com/UQRacing/EV-M1/blob/main  # link sources back to the repo
+m1-doc --project Project.m1prj --only-security Tune,Calibration   # calibration-focused subset
+m1-doc --project Project.m1prj --graph Root.Engine --format json  # machine-readable model + subsystem graph
+```
+
+`--out` defaults to `m1-doc`; `--format` defaults to `both` (also
+`markdown` / `html` / `json`). Run `m1-doc --help` for the rest
+(`--title`, `--include-source`, `--only-tag`, `--graph-depth`). The VS Code
+and CI docs flows shell out to this same binary, so a doc set built in CI
+matches what you preview locally.
+
 ### Edit / validate the project file
 
 ```sh
