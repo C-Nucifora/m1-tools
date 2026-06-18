@@ -42,8 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: shellcheck scripts
-        # release-manifest.sh is the only executable logic in the repo; lint it
-        # so shell foot-guns are caught here, not in a release cascade.
+        # The repo's executable logic lives in scripts/*.sh; lint it so shell
+        # foot-guns are caught here, not in a release cascade.
         run: shellcheck scripts/*.sh
       - name: release-manifest behavioural tests
         # Guards the 404-vs-transient-failure contract of release-manifest.sh
@@ -51,6 +51,11 @@ jobs:
         # silently emit a main-pinned manifest). The suite stubs gh + curl on
         # PATH, so no token or network is needed.
         run: bash scripts/release-manifest.test.sh
+      - name: check-ci-pin behavioural tests
+        # Guards the pin-check's failure messages: a stale pin, a *missing* pin
+        # (snippet removed/rephrased -> empty match), and ambiguous multi-pins
+        # must each report clearly. The suite stubs gh on PATH (no token).
+        run: bash scripts/check-ci-pin.test.sh
 
   m1-ci-pin:
     name: m1-ci pin freshness
@@ -64,13 +69,6 @@ jobs:
         # like tools.env.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pinned=$(grep -oP 'check\.yml@\Kv[0-9.]+' README.md | sort -u)
-          latest=$(gh api repos/C-Nucifora/m1-ci/releases/latest -q .tag_name)
-          if [ "$(echo "$pinned" | wc -l)" -ne 1 ]; then
-            echo "README pins multiple m1-ci tags: $pinned"; exit 1
-          fi
-          if [ "$pinned" != "$latest" ]; then
-            echo "README pins m1-ci $pinned but the latest release is $latest"; exit 1
-          fi
-          echo "README pin $pinned matches latest m1-ci release"
+        # Logic lives in scripts/check-ci-pin.sh (shellchecked + unit-tested) so
+        # the empty-pin / stale-pin / multi-pin cases are each reported clearly.
+        run: bash scripts/check-ci-pin.sh
