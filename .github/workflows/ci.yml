@@ -17,7 +17,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run markdownlint
         # Glob the whole docs surface so a newly added .md is guarded
         # automatically, not silently skipped (#25).
@@ -27,7 +27,7 @@ jobs:
     name: link-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
@@ -40,7 +40,7 @@ jobs:
     name: release-manifest script
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: shellcheck scripts
         # The repo's executable logic lives in scripts/*.sh; lint it so shell
         # foot-guns are caught here, not in a release cascade.
@@ -61,7 +61,7 @@ jobs:
     name: m1-ci pin freshness
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: README pins the latest m1-ci release
         # The README's example snippet pins check.yml@vX.Y.Z. Nothing else
         # guards it, so it goes stale the moment m1-ci releases (#26) — fail
