@@ -56,6 +56,8 @@ latest release. Generated, not committed, so it cannot go stale in-tree.)
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (`m1-lint --rules` for the catalogue) |
 | [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Symbol model + type diagnostics (`--rules` for the catalogue) |
 | [m1-doc](https://github.com/C-Nucifora/m1-doc) | Documentation generator: Markdown/HTML reference from a project |
+| [m1-eval](https://github.com/C-Nucifora/m1-eval) | Script evaluator/interpreter: real numeric evaluation, whole-project scheduling, counterfactual log replay |
+| [m1-visualiser](https://github.com/C-Nucifora/m1-visualiser) | Interactive dependency & lookup-table graph (self-contained Cytoscape HTML + DOT/JSON) |
 | [m1-project](https://github.com/nedlane/m1-project) | Validated CLI editor for `Project.m1prj` |
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language server integrating the above |
 | [m1-vscode](https://github.com/nedlane/m1-vscode) | VS Code extension |
@@ -80,15 +82,19 @@ graph TD
     lint["m1-lint"]
     proj["m1-project"]
     doc["m1-doc"]
+    eval["m1-eval<br/>evaluator / interpreter"]
+    vis["m1-visualiser<br/>dependency + value graph"]
     lsp["m1-lsp<br/>LSP server — integrates all"]
     vscode["m1-vscode"]
     nvim["nvim-m1<br/>(+ telescope-m1.nvim)"]
     ci["m1-ci<br/>reusable CI for M1 script projects"]
 
     ts --> core
-    core --> tc & fmt & lint & proj & doc
-    ws --> tc & fmt & lint & proj & doc
-    tc -->|symbol model| doc
+    core --> tc & fmt & lint & proj & doc & eval
+    ws --> tc & fmt & lint & proj & doc & eval
+    tc -->|symbol model| doc & eval
+    core --> vis
+    eval -->|overlay values| vis
     tc --> lsp
     fmt --> lsp
     lint --> lsp
@@ -98,10 +104,11 @@ graph TD
 
 The layers above are: **tree-sitter-m1** (grammar) → **m1-core** /
 **m1-workspace** (shared libraries) → the **domain libraries / CLIs**
-(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-doc) → **m1-lsp** (the language
-server that integrates them) → the **editor clients** (m1-vscode, nvim-m1).
-**m1-ci** is standalone: reusable CI for M1 *script* projects, not a build-time
-dependency of the toolchain.
+(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-doc, m1-eval) → **m1-lsp** (the
+language server that integrates them) → the **editor clients** (m1-vscode,
+nvim-m1). **m1-visualiser** graphs the dependency / lookup-table structure and
+can overlay m1-eval's computed values. **m1-ci** is standalone: reusable CI for
+M1 *script* projects, not a build-time dependency of the toolchain.
 
 Repos depend on each other via **versioned git tags** (none are on
 crates.io), so every repo builds from a standalone clone; consumer-bump PRs
