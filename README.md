@@ -264,7 +264,7 @@ PR annotations, and optional SARIF upload:
 # .github/workflows/check.yml
 jobs:
   m1-check:
-    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.24.0
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.25.1
 ```
 
 The same gates run locally as pre-commit hooks at the same pinned versions —
