@@ -6,6 +6,7 @@ m1-core/
 m1-workspace/
 m1-typecheck/
 m1-doc/
+m1-mcp/
 m1-lsp/
 m1-fmt/
 m1-lint/

@@ -88,8 +88,8 @@ graph TD
     ci["m1-ci<br/>reusable CI for M1 script projects"]
 
     ts --> core
-    core --> tc & fmt & lint & proj & doc
-    ws --> tc & fmt & lint & proj & doc
+    core --> tc & fmt & lint & doc & lsp & mcp
+    ws --> tc & fmt & lint & proj & lsp & mcp
     tc -->|symbol model| doc
     tc --> lsp
     fmt --> lsp
@@ -262,7 +262,7 @@ PR annotations, and optional SARIF upload:
 # .github/workflows/check.yml
 jobs:
   m1-check:
-    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.25.1
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.26.0
 ```
 
 The same gates run locally as pre-commit hooks at the same pinned versions —
