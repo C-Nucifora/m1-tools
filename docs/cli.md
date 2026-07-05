@@ -1,10 +1,12 @@
 # M1 CLIs — quickstart & conventions
 
 The toolchain ships five standalone command-line tools that work on M1
-projects without an editor, plus `m1-cfg-export` which ships bundled with
-`m1-typecheck` rather than as a separate release. All six are the same engines
-the editor plugins drive (over LSP or by spawning the CLI), so what you see in
-CI matches what you see in your editor.
+projects without an editor — `m1-fmt`, `m1-lint`, `m1-typecheck`, `m1-doc`,
+`m1-project` — plus `m1-cfg-export` (bundled with `m1-typecheck`). These are
+the same engines the editor plugins drive (over LSP or by spawning the CLI), so
+what you see in CI matches what you see in your editor. `m1-mcp` (last row) is a
+different shape: a Model Context Protocol server that surfaces those engines to
+AI agents over stdio rather than a CLI you run on a project.
 
 | Tool | Does | Typical use |
 | --- | --- | --- |
