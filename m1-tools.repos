@@ -19,9 +19,17 @@ repositories:
     type: git
     url: https://github.com/C-Nucifora/m1-doc.git
     version: main
+  m1-eval:
+    type: git
+    url: https://github.com/C-Nucifora/m1-eval.git
+    version: main
   m1-mcp:
     type: git
     url: https://github.com/nedlane/m1-mcp.git
+    version: main
+  m1-visualiser:
+    type: git
+    url: https://github.com/C-Nucifora/m1-visualiser.git
     version: main
   m1-lsp:
     type: git

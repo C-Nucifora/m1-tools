@@ -56,6 +56,8 @@ latest release. Generated, not committed, so it cannot go stale in-tree.)
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (`m1-lint --rules` for the catalogue) |
 | [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Symbol model + type diagnostics (`--rules` for the catalogue) |
 | [m1-doc](https://github.com/C-Nucifora/m1-doc) | Documentation generator: Markdown/HTML reference from a project |
+| [m1-eval](https://github.com/C-Nucifora/m1-eval) | Script evaluator/interpreter: real numeric evaluation, whole-project scheduling, counterfactual log replay |
+| [m1-visualiser](https://github.com/C-Nucifora/m1-visualiser) | Interactive dependency & lookup-table graph (self-contained Cytoscape HTML + DOT/JSON) |
 | [m1-mcp](https://github.com/nedlane/m1-mcp) | MCP server exposing the toolchain to AI agents (doc lookup + typecheck/lint/fmt) |
 | [m1-project](https://github.com/nedlane/m1-project) | Validated CLI editor for `Project.m1prj` |
 | [m1-lsp](https://github.com/C-Nucifora/m1-lsp) | Language server integrating the above |
@@ -81,6 +83,8 @@ graph TD
     lint["m1-lint"]
     proj["m1-project"]
     doc["m1-doc"]
+    eval["m1-eval<br/>evaluator / interpreter"]
+    vis["m1-visualiser<br/>dependency + value graph"]
     mcp["m1-mcp<br/>MCP server for AI agents"]
     lsp["m1-lsp<br/>LSP server — integrates all"]
     vscode["m1-vscode"]
@@ -88,9 +92,10 @@ graph TD
     ci["m1-ci<br/>reusable CI for M1 script projects"]
 
     ts --> core
-    core --> tc & fmt & lint & doc & lsp & mcp
+    core --> tc & fmt & lint & doc & lsp & mcp & eval & vis
     ws --> tc & fmt & lint & proj & lsp & mcp
-    tc -->|symbol model| doc
+    tc -->|symbol model| doc & eval & vis
+    eval -->|overlay values| vis
     tc --> lsp
     fmt --> lsp
     lint --> lsp
@@ -101,12 +106,14 @@ graph TD
 
 The layers above are: **tree-sitter-m1** (grammar) → **m1-core** /
 **m1-workspace** (shared libraries) → the **domain libraries / CLIs**
-(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-doc) → **m1-lsp** (the language
-server that integrates them) → the **editor clients** (m1-vscode, nvim-m1).
-**m1-mcp** is a parallel consumer of the domain libraries: an MCP server that
-surfaces doc lookup and typecheck/lint/fmt to AI agents, the way m1-lsp surfaces
-them to editors. **m1-ci** is standalone: reusable CI for M1 *script* projects,
-not a build-time dependency of the toolchain.
+(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-doc, m1-eval) → **m1-lsp** (the
+language server that integrates them) → the **editor clients** (m1-vscode,
+nvim-m1). **m1-mcp** is a parallel consumer of the domain libraries: an MCP
+server that surfaces doc lookup and typecheck/lint/fmt to AI agents, the way
+m1-lsp surfaces them to editors. **m1-visualiser** graphs the dependency /
+lookup-table structure and can overlay m1-eval's computed values. **m1-ci** is
+standalone: reusable CI for M1 *script* projects, not a build-time dependency
+of the toolchain.
 
 Repos depend on each other via **versioned git tags** (none are on
 crates.io), so every repo builds from a standalone clone; consumer-bump PRs
@@ -262,7 +269,7 @@ PR annotations, and optional SARIF upload:
 # .github/workflows/check.yml
 jobs:
   m1-check:
-    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.26.0
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.26.1
 ```
 
 The same gates run locally as pre-commit hooks at the same pinned versions —
