@@ -31,7 +31,7 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --retry-wait-time 5 --max-retries 1 README.md docs/
+          args: --retry-wait-time 5 --max-retries 1 README.md AGENTS.md docs/
           fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +56,10 @@ jobs:
         # (snippet removed/rephrased -> empty match), and ambiguous multi-pins
         # must each report clearly. The suite stubs gh on PATH (no token).
         run: bash scripts/check-ci-pin.test.sh
+      - name: repos list is in sync
+        # m1-tools.repos, .gitignore and the README repo table must agree; a repo
+        # added to the manifest without the other two drifted silently (m1-mcp).
+        run: bash scripts/check-repos-sync.sh
 
   m1-ci-pin:
     name: m1-ci pin freshness
