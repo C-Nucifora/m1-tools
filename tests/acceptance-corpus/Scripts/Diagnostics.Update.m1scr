@@ -1,0 +1,12 @@
+// Synthetic acceptance-corpus script. No proprietary MoTeC content.
+// Seed temperature from a calibration, then raise a fault flag when it
+// exceeds the calibrated limit.
+Temperature = Temperature Source;
+if (Temperature > Temperature Limit)
+{
+	Fault = 1.0;
+}
+else
+{
+	Fault = 0.0;
+}

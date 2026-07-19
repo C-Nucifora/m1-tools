@@ -1,0 +1,4 @@
+// Synthetic acceptance-corpus script. No proprietary MoTeC content.
+// Seed engine speed from a calibration, then derive torque with a gain.
+Speed = Base Speed;
+Torque = Speed * Gain;

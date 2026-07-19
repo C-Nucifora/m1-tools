@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!-- Synthetic acceptance corpus for the umbrella compat workflow.            -->
+<!-- No proprietary MoTeC content: every channel, parameter and script is     -->
+<!-- authored here purely to give the released m1-fmt / m1-lint / m1-typecheck -->
+<!-- a small, self-contained project to run against (compat.yml).             -->
+<!--                                                                          -->
+<!-- The graph is deliberately CLOSED — every channel is assigned by some     -->
+<!-- script and every parameter is read by some script — so the whole-project -->
+<!-- passes (T093 unassigned-channel / T094 unread-parameter) stay clean.     -->
+<!-- Each group is self-contained so unqualified names resolve within their   -->
+<!-- own group compound, the way M1 scopes them.                              -->
+<MoTeCM1BuildSession>
+ <Project Name="Acceptance" TargetHardware="ecu120">
+  <ComponentStream><List>
+   <Component Classname="BuiltIn.GroupCompound" Name="Root.Events"/>
+   <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 100Hz"/>
+   <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 50Hz"/>
+   <Component Classname="BuiltIn.EventKernel" Name="Root.Events.On 10Hz"/>
+
+   <Component Classname="BuiltIn.GroupCompound" Name="Root.Engine"><Props SelectedTags="Engine Normal"/></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Engine.Base Speed"><Props Type="f32"><Locale><Default Unit="rpm"/></Locale></Props></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Engine.Gain"><Props Type="f32"/></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Engine.Speed"><Props Type="f32"><Locale><Default Unit="rpm"/></Locale></Props></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Engine.Torque"><Props Type="f32"/></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Engine.Torque Limit"><Props Type="f32"/></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Engine.Limited Torque"><Props Type="f32"/></Component>
+
+   <Component Classname="BuiltIn.GroupCompound" Name="Root.Sensors"><Props SelectedTags="Engine Normal"/></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Sensors.Raw Level"><Props Type="f32"/></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Sensors.Raw"><Props Type="f32"/></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Sensors.Filter Alpha"><Props Type="f32"/></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Sensors.Filtered"><Props Type="f32"/></Component>
+
+   <Component Classname="BuiltIn.GroupCompound" Name="Root.Diagnostics"><Props SelectedTags="Engine Normal"/></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Diagnostics.Temperature Source"><Props Type="f32"><Locale><Default Unit="C"/></Locale></Props></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Diagnostics.Temperature"><Props Type="f32"><Locale><Default Unit="C"/></Locale></Props></Component>
+   <Component Classname="BuiltIn.Parameter" Name="Root.Diagnostics.Temperature Limit"><Props Type="f32"><Locale><Default Unit="C"/></Locale></Props></Component>
+   <Component Classname="BuiltIn.Channel" Name="Root.Diagnostics.Fault"><Props Type="f32"/></Component>
+
+   <Component Classname="BuiltIn.FuncUser" Filename="Engine.Update.m1scr" Name="Root.Engine.Update">
+    <Props SelectedTrigger="Root.Events.On 100Hz"/>
+   </Component>
+   <Component Classname="BuiltIn.FuncUser" Filename="Engine.Limit.m1scr" Name="Root.Engine.Limit">
+    <Props SelectedTrigger="Root.Events.On 100Hz"/>
+   </Component>
+   <Component Classname="BuiltIn.FuncUser" Filename="Sensors.Filter.m1scr" Name="Root.Sensors.Filter">
+    <Props SelectedTrigger="Root.Events.On 50Hz"/>
+   </Component>
+   <Component Classname="BuiltIn.FuncUser" Filename="Diagnostics.Update.m1scr" Name="Root.Diagnostics.Update">
+    <Props SelectedTrigger="Root.Events.On 10Hz"/>
+   </Component>
+  </List></ComponentStream>
+ </Project>
+</MoTeCM1BuildSession>

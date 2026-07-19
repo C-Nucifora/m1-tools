@@ -38,3 +38,17 @@ diagram, cross-tool conventions, editor setup).
   latest m1-ci release. Bumping it is part of every m1-ci release cascade.
 - **CI also runs markdownlint and a link check** over all Markdown here;
   `.markdownlintignore` exempts the `CLAUDE.md` pointer file.
+- **Ecosystem-level release/compat tooling lives in `scripts/` + two
+  scheduled workflows.** `scripts/release-manifest.sh` resolves the manifest
+  to release tags (hard-errors on an unreleased repo; `--allow-main` to
+  override). `scripts/compat-bom.sh` publishes the compatibility BOM — the
+  released-consumer *and* development-main graphs, with each repo's internal
+  `m1-*` git-tag pins (`--json` for machines). `scripts/check-skew.sh` fails
+  when a released repo's internal pin lags its dependency's latest release
+  ("undocumented skew"); `.github/workflows/skew-guard.yml` runs it on a
+  schedule (never a PR gate — skew is expected transiently mid-cascade).
+  `.github/workflows/compat.yml` (weekly) builds and tests the whole released
+  graph in dependency order and runs the released fmt/lint/typecheck over the
+  synthetic `tests/acceptance-corpus/`. Every script is shellcheck-clean with
+  a `*.test.sh` beside it (stubbed gh, no network), run by the `release-script`
+  CI job.

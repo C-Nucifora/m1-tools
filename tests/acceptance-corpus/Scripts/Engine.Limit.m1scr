@@ -1,0 +1,10 @@
+// Synthetic acceptance-corpus script. No proprietary MoTeC content.
+// Clamp torque to a calibrated ceiling; runs after Engine.Update at 100 Hz.
+if (Torque > Torque Limit)
+{
+	Limited Torque = Torque Limit;
+}
+else
+{
+	Limited Torque = Torque;
+}

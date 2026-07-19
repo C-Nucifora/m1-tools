@@ -16,9 +16,31 @@
 # reproduces exactly what consumers install. Generated on demand (it queries
 # GitHub) rather than committed, so it cannot go stale in-tree.
 #
+# A component with no release yet is a HARD ERROR by default: a "release"
+# manifest that silently pins an unreleased repo to `main` is not reproducible
+# and hides exactly the dev-vs-released divergence this script exists to expose
+# (#60). Pass --allow-main to restore the old lenient fall-through (a warning +
+# a main pin) — useful while bootstrapping a repo that has not cut its first
+# release.
+#
 # Requires: gh (authenticated), python3 (YAML-light parsing of the manifest).
 
 set -euo pipefail
+
+allow_main=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --allow-main) allow_main=1; shift ;;
+    -h | --help)
+      sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      echo "error: unknown argument: $1 (accepted: --allow-main)" >&2
+      exit 2
+      ;;
+  esac
+done
 
 here="$(cd "$(dirname "$0")/.." && pwd)"
 manifest="$here/m1-tools.repos"
@@ -94,8 +116,15 @@ PY
     tag=$(latest_release_tag "$repo")
   fi
   if [ -z "$tag" ]; then
-    echo "warning: no release found for $name; keeping main" >&2
-    tag=main
+    if [ "$allow_main" = 1 ]; then
+      echo "warning: no release found for $name; keeping main" >&2
+      tag=main
+    else
+      echo "error: no release found for $name; a release manifest cannot pin an" >&2
+      echo "       unreleased repo to main. Cut a release, or pass --allow-main to" >&2
+      echo "       fall back to main deliberately." >&2
+      exit 1
+    fi
   fi
   printf '  %s:\n    type: git\n    url: %s\n    version: %s\n' "$name" "$url" "$tag"
 done
