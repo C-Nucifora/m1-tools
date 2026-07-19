@@ -12,10 +12,12 @@ name: compat
 #   2. vcstool imports that graph into released/.
 #   3. Every Rust repo is built + `cargo test`ed in dependency order at its
 #      released tag, proving the released graph is mutually compatible.
-#   4. The released m1-fmt / m1-lint / m1-typecheck run over a synthetic
-#      acceptance corpus (tests/acceptance-corpus/ — authored in-repo, no
-#      proprietary MoTeC content): formatter idempotence (format twice, diff),
-#      lint, and whole-project typecheck, failing on errors.
+#   4. The released m1-fmt / m1-lint / m1-typecheck / m1-eval run over a
+#      synthetic acceptance corpus (tests/acceptance-corpus/ — authored in-repo,
+#      no proprietary MoTeC content): formatter idempotence (format twice,
+#      diff), lint, whole-project typecheck, and an m1-eval whole-project
+#      multi-rate golden (invocation counts + final values for the 100/50/10 Hz
+#      groups), all failing on errors.
 #
 # Schedule + manual only — this exercises the published graph, not a PR's
 # working tree, so it is not a PR gate.
@@ -88,7 +90,7 @@ jobs:
       - name: Build the released acceptance tools
         run: |
           set -euo pipefail
-          for tool in m1-fmt m1-lint m1-typecheck; do
+          for tool in m1-fmt m1-lint m1-typecheck m1-eval; do
             cargo build --release --manifest-path "released/$tool/Cargo.toml" \
               --bin "$tool"
           done
@@ -129,3 +131,16 @@ jobs:
           echo "::group::m1-typecheck (whole project)"
           "$tc" --project "$corpus/Project.m1prj"
           echo "::endgroup::"
+
+      - name: Acceptance corpus — m1-eval multi-rate golden
+        # Runs the released m1-eval whole-project scheduler over the corpus and
+        # diffs the result against the committed golden: per-function invocation
+        # counts for the 100 / 50 / 10 Hz groups, each channel's final value, and
+        # the externally-defaulted channel. m1-eval is deterministic, so a
+        # mismatch is a real behavioural change in the released graph.
+        run: |
+          set -euo pipefail
+          eval_bin="released/m1-eval/target/release/m1-eval"
+          corpus="tests/acceptance-corpus"
+          scripts/eval-golden.sh "$eval_bin" "$corpus" \
+            "$corpus/golden/whole-project.golden"
