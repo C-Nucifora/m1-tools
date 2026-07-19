@@ -48,7 +48,9 @@ diagram, cross-tool conventions, editor setup).
   ("undocumented skew"); `.github/workflows/skew-guard.yml` runs it on a
   schedule (never a PR gate — skew is expected transiently mid-cascade).
   `.github/workflows/compat.yml` (weekly) builds and tests the whole released
-  graph in dependency order and runs the released fmt/lint/typecheck over the
-  synthetic `tests/acceptance-corpus/`. Every script is shellcheck-clean with
+  graph in dependency order and runs the released fmt/lint/typecheck plus an
+  m1-eval whole-project multi-rate golden (`scripts/eval-golden.sh`, invocation
+  counts + final values for the 100/50/10 Hz groups) over the synthetic
+  `tests/acceptance-corpus/`. Every script is shellcheck-clean with
   a `*.test.sh` beside it (stubbed gh, no network), run by the `release-script`
   CI job.

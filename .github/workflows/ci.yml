@@ -65,6 +65,11 @@ jobs:
         # Guards the skew comparison (released pin vs the dependency's latest
         # release) by stubbing compat-bom.sh with canned BOMs (no token).
         run: bash scripts/check-skew.test.sh
+      - name: eval-golden behavioural tests
+        # Guards the m1-eval golden derivation (schedule -> lcm base +
+        # invocation counts, per-channel finals, externals) and the golden
+        # round-trip by stubbing the m1-eval binary (no eval, no corpus).
+        run: bash scripts/eval-golden.test.sh
       - name: repos list is in sync
         # m1-tools.repos, .gitignore and the README repo table must agree; a repo
         # added to the manifest without the other two drifted silently (m1-mcp).

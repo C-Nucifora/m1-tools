@@ -1,0 +1,17 @@
+# Synthetic acceptance-corpus scenario for the m1-eval whole-project multi-rate
+# golden (compat.yml). No proprietary MoTeC content.
+#
+# Runs every scheduled function at its own rate for 1.0 s. base_rate_hz is
+# omitted, so m1-eval derives it as the least common multiple of the scheduled
+# rates — lcm(100, 50, 10) = 100 Hz — giving 100 base ticks and exact integer
+# periods for every group (100 Hz every tick, 50 Hz every 2nd, 10 Hz every
+# 10th).
+#
+# allow_default_inputs is on because the low-pass in Sensors.Filter reads its
+# own previous-cycle output (Root.Sensors.Filtered) before it is first written;
+# at tick 0 that read has no prior value and defaults to the type-correct 0.0
+# (reported, not silently guessed). Every other input is a parameter read from
+# parameters.m1cfg, so this is the only substitution.
+mode = "whole-project"
+duration_s = 1.0
+allow_default_inputs = true

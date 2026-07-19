@@ -1,0 +1,19 @@
+# m1-eval whole-project golden over tests/acceptance-corpus
+# regenerate with: scripts/eval-golden.sh <eval-bin> <corpus> <golden> --update
+ticks 100
+base_hz 100
+# invocations = ticks * rate / base
+invocations Root.Diagnostics.Update @10Hz = 10
+invocations Root.Engine.Limit @100Hz = 100
+invocations Root.Engine.Update @100Hz = 100
+invocations Root.Sensors.Filter @50Hz = 50
+# final channel values (last tick)
+final Root.Diagnostics.Fault = 0
+final Root.Diagnostics.Temperature = 95
+final Root.Engine.Limited Torque = 250
+final Root.Engine.Speed = 3000
+final Root.Engine.Torque = 4500
+final Root.Sensors.Filtered = 41.99940055596907
+final Root.Sensors.Raw = 42
+# externally driven / defaulted channels
+external Root.Sensors.Filtered
