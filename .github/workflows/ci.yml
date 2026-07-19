@@ -56,6 +56,15 @@ jobs:
         # (snippet removed/rephrased -> empty match), and ambiguous multi-pins
         # must each report clearly. The suite stubs gh on PATH (no token).
         run: bash scripts/check-ci-pin.test.sh
+      - name: compat-bom behavioural tests
+        # Guards the BOM generator's pin extraction, non-Rust n/a handling,
+        # no-release main-graph fallback, and the same 404-vs-transient
+        # discipline. The suite stubs gh per endpoint (no token).
+        run: bash scripts/compat-bom.test.sh
+      - name: check-skew behavioural tests
+        # Guards the skew comparison (released pin vs the dependency's latest
+        # release) by stubbing compat-bom.sh with canned BOMs (no token).
+        run: bash scripts/check-skew.test.sh
       - name: repos list is in sync
         # m1-tools.repos, .gitignore and the README repo table must agree; a repo
         # added to the manifest without the other two drifted silently (m1-mcp).

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!-- Synthetic acceptance-corpus calibration. No proprietary MoTeC content. -->
+<Configuration Locale="English_Australia.1252" DefaultLocale="C">
+ <Group Name="">
+  <Parameter Name="Engine.Base Speed">
+   <Cell Type="f32"><![CDATA[3000.0]]></Cell>
+  </Parameter>
+  <Parameter Name="Engine.Gain">
+   <Cell Type="f32"><![CDATA[1.5]]></Cell>
+  </Parameter>
+  <Parameter Name="Engine.Torque Limit">
+   <Cell Type="f32"><![CDATA[250.0]]></Cell>
+  </Parameter>
+  <Parameter Name="Sensors.Raw Level">
+   <Cell Type="f32"><![CDATA[42.0]]></Cell>
+  </Parameter>
+  <Parameter Name="Sensors.Filter Alpha">
+   <Cell Type="f32"><![CDATA[0.2]]></Cell>
+  </Parameter>
+  <Parameter Name="Diagnostics.Temperature Source">
+   <Cell Type="f32"><![CDATA[95.0]]></Cell>
+  </Parameter>
+  <Parameter Name="Diagnostics.Temperature Limit">
+   <Cell Type="f32"><![CDATA[110.0]]></Cell>
+  </Parameter>
+ </Group>
+</Configuration>

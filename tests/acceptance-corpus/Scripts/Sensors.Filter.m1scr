@@ -1,0 +1,6 @@
+// Synthetic acceptance-corpus script. No proprietary MoTeC content.
+// Seed the raw reading from a calibration, then low-pass it toward a
+// calibrated smoothing factor (Filtered carries its previous-cycle value).
+Raw = Raw Level;
+local delta = Raw - Filtered;
+Filtered = Filtered + delta * Filter Alpha;

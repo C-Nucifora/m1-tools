@@ -65,12 +65,13 @@ EOF
   printf '%s' "$dir"
 }
 
-run() { # run <sandbox_dir> -> sets RC, OUT, ERR
+run() { # run <sandbox_dir> [script args...] -> sets RC, OUT, ERR
   local dir="$1"
+  shift
   OUT="$dir/out.repos"
   ERR="$dir/err.txt"
   set +e
-  PATH="$dir/bin:$PATH" bash "$dir/scripts/release-manifest.sh" >"$OUT" 2>"$ERR"
+  PATH="$dir/bin:$PATH" bash "$dir/scripts/release-manifest.sh" "$@" >"$OUT" 2>"$ERR"
   RC=$?
   set -e
 }
@@ -161,13 +162,45 @@ else
 fi
 rm -rf "$dir"
 
-# 2. A genuine 404 (no release yet) falls through to main, exit 0, with a note.
+# 2. A component with no release yet (genuine 404) is a HARD ERROR by default:
+#    a release manifest that silently pins main defeats the point (#60). It must
+#    exit non-zero and NOT emit a main-pinned entry.
 dir="$(make_sandbox '  echo "gh: Not Found (HTTP 404)" >&2; exit 1')"
 run "$dir"
-if [ "$RC" -eq 0 ] && grep -q 'version: main' "$OUT"; then
-  pass "404 (no release) falls back to main and exits 0"
+if [ "$RC" -ne 0 ] && ! grep -q 'version: main' "$OUT"; then
+  pass "no release (404) is a hard error by default (no silent main pin)"
 else
-  die "expected exit 0 and version: main on 404 (rc=$RC, out: $(cat "$OUT"))"
+  die "expected non-zero exit and no version: main on 404 default (rc=$RC, out: $(cat "$OUT"))"
+fi
+rm -rf "$dir"
+
+# 2b. The hard-error message names the offending component and how to override.
+dir="$(make_sandbox '  echo "gh: Not Found (HTTP 404)" >&2; exit 1')"
+run "$dir"
+if grep -q 'm1-doc' "$ERR" && grep -q -- '--allow-main' "$ERR"; then
+  pass "no-release error names the component and points at --allow-main"
+else
+  die "expected error naming m1-doc and --allow-main (err: $(cat "$ERR"))"
+fi
+rm -rf "$dir"
+
+# 2c. --allow-main restores the old fall-through: 404 -> main, exit 0, with a note.
+dir="$(make_sandbox '  echo "gh: Not Found (HTTP 404)" >&2; exit 1')"
+run "$dir" --allow-main
+if [ "$RC" -eq 0 ] && grep -q 'version: main' "$OUT"; then
+  pass "--allow-main falls back to main and exits 0 on 404"
+else
+  die "expected exit 0 and version: main on 404 with --allow-main (rc=$RC, out: $(cat "$OUT"))"
+fi
+rm -rf "$dir"
+
+# 2d. An unknown flag is rejected (exit 2), not silently ignored.
+dir="$(make_sandbox '  echo "v0.6.0"; exit 0')"
+run "$dir" --bogus
+if [ "$RC" -eq 2 ]; then
+  pass "unknown flag exits 2"
+else
+  die "expected exit 2 on unknown flag (rc=$RC, err: $(cat "$ERR"))"
 fi
 rm -rf "$dir"
 

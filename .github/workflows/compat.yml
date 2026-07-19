@@ -1,0 +1,131 @@
+name: compat
+
+# Umbrella compatibility gate for the RELEASED toolchain graph (#59, pragmatic
+# v1). Individual repos have strong synthetic suites, but nothing proves the
+# *released* graph — every repo at its published tag, wired by the versioned
+# git-tag Cargo deps consumers actually install — still builds and works
+# together. This workflow does that:
+#
+#   1. scripts/release-manifest.sh materialises the released graph (each repo
+#      pinned to its latest release tag; a repo with no release is a hard error
+#      here, since the released graph would be incomplete).
+#   2. vcstool imports that graph into released/.
+#   3. Every Rust repo is built + `cargo test`ed in dependency order at its
+#      released tag, proving the released graph is mutually compatible.
+#   4. The released m1-fmt / m1-lint / m1-typecheck run over a synthetic
+#      acceptance corpus (tests/acceptance-corpus/ — authored in-repo, no
+#      proprietary MoTeC content): formatter idempotence (format twice, diff),
+#      lint, and whole-project typecheck, failing on errors.
+#
+# Schedule + manual only — this exercises the published graph, not a PR's
+# working tree, so it is not a PR gate.
+#
+# KNOWN FOLLOW-UPS (need display/OS runners, deliberately out of scope here):
+#   - VS Code Extension Host smoke (m1-vscode) — needs a graphical display.
+#   - Neovim-version matrix (nvim-m1 / telescope-m1.nvim) — needs headless nvim.
+#   - Private EV/AV corpus gates with aggregate public results.
+# Tracked in #59; this v1 establishes the released-graph build + synthetic
+# acceptance corpus first.
+on:
+  schedule:
+    # Weekly, Monday 05:00 UTC.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  released-graph:
+    name: released graph build + acceptance corpus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry and git deps
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install vcstool
+        run: |
+          python3 -m pip install --user vcstool
+          echo "$HOME/.local/bin" >>"$GITHUB_PATH"
+
+      - name: Materialise the released graph manifest
+        # Hard-errors if any repo has no release (the released graph would be
+        # incomplete); that is the correct signal, not something to paper over.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          scripts/release-manifest.sh >m1-tools-release.repos
+          echo "----- released graph -----"
+          cat m1-tools-release.repos
+
+      - name: Import the released graph
+        run: |
+          mkdir -p released
+          vcs import released <m1-tools-release.repos
+
+      - name: Build + test the Rust graph in dependency order
+        # Each repo builds against its dependencies' RELEASED tags (versioned
+        # git-tag Cargo deps), so a green run proves the published graph is
+        # mutually compatible — the thing per-repo CI cannot see.
+        run: |
+          set -euo pipefail
+          order=(tree-sitter-m1 m1-core m1-workspace m1-project m1-fmt m1-lint
+                 m1-typecheck m1-doc m1-eval m1-visualiser m1-mcp m1-lsp)
+          for repo in "${order[@]}"; do
+            echo "::group::cargo test $repo"
+            cargo test --manifest-path "released/$repo/Cargo.toml"
+            echo "::endgroup::"
+          done
+
+      - name: Build the released acceptance tools
+        run: |
+          set -euo pipefail
+          for tool in m1-fmt m1-lint m1-typecheck; do
+            cargo build --release --manifest-path "released/$tool/Cargo.toml" \
+              --bin "$tool"
+          done
+
+      - name: Acceptance corpus — fmt idempotence, lint, typecheck
+        # Runs the freshly built RELEASED tools over the synthetic corpus. The
+        # formatter must be idempotent (format twice -> identical) and the
+        # committed corpus must already be canonical; lint and whole-project
+        # typecheck must report no errors.
+        run: |
+          set -euo pipefail
+          fmt="released/m1-fmt/target/release/m1-fmt"
+          lint="released/m1-lint/target/release/m1-lint"
+          tc="released/m1-typecheck/target/release/m1-typecheck"
+          corpus="tests/acceptance-corpus"
+
+          echo "::group::m1-fmt — committed corpus is canonical"
+          "$fmt" --check "$corpus/Scripts"
+          echo "::endgroup::"
+
+          echo "::group::m1-fmt — idempotence (format twice, diff)"
+          for f in "$corpus"/Scripts/*.m1scr; do
+            once="$("$fmt" "$f")"
+            twice="$(printf '%s' "$once" | "$fmt" --stdin-filename "$f" -)"
+            if [ "$once" != "$twice" ]; then
+              echo "::error file=$f::m1-fmt is not idempotent on $f"
+              diff <(printf '%s' "$once") <(printf '%s' "$twice") || true
+              exit 1
+            fi
+          done
+          echo "all scripts format idempotently"
+          echo "::endgroup::"
+
+          echo "::group::m1-lint"
+          "$lint" "$corpus/Scripts"
+          echo "::endgroup::"
+
+          echo "::group::m1-typecheck (whole project)"
+          "$tc" --project "$corpus/Project.m1prj"
+          echo "::endgroup::"

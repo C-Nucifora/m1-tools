@@ -1,0 +1,41 @@
+name: skew-guard
+
+# Fails when a RELEASED repo's internal m1-* / tree-sitter-m1 git-tag pin lags
+# the latest release of the crate it depends on ("undocumented cross-repo
+# skew", #60). All the data comes from scripts/compat-bom.sh; the comparison
+# lives in scripts/check-skew.sh (unit-tested in scripts/check-skew.test.sh).
+#
+# Schedule + manual only — NOT a PR gate. Skew is expected transiently
+# mid-cascade (an upstream release bump reaches its consumers as follow-up PRs
+# over the following minutes); gating PRs on it would block unrelated work for a
+# state that self-heals. A scheduled failure is the signal that a cascade
+# stalled and a consumer bump PR is missing.
+on:
+  schedule:
+    # Daily, mirroring the daily Dependabot cadence that backstops the
+    # propagation this guard watches.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  skew:
+    name: cross-repo pin skew
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: shellcheck scripts
+        run: shellcheck scripts/*.sh
+      - name: compat-bom + check-skew unit tests
+        # Stubbed, no token — proves the skew logic before the live check runs.
+        run: |
+          bash scripts/compat-bom.test.sh
+          bash scripts/check-skew.test.sh
+      - name: fail on undocumented cross-repo skew
+        # Prints exactly which released repo pins what vs the dependency's
+        # latest release; exits non-zero on any lag.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/check-skew.sh
