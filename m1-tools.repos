@@ -15,6 +15,10 @@ repositories:
     type: git
     url: https://github.com/C-Nucifora/m1-typecheck.git
     version: main
+  m1-can:
+    type: git
+    url: https://github.com/nedlane/m1-can.git
+    version: main
   m1-doc:
     type: git
     url: https://github.com/C-Nucifora/m1-doc.git

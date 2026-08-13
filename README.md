@@ -55,6 +55,7 @@ latest release. Generated, not committed, so it cannot go stale in-tree.)
 | [m1-fmt](https://github.com/C-Nucifora/m1-fmt) | Code formatter |
 | [m1-lint](https://github.com/C-Nucifora/m1-lint) | Static analysis / linter (`m1-lint --rules` for the catalogue) |
 | [m1-typecheck](https://github.com/C-Nucifora/m1-typecheck) | Symbol model + type diagnostics (`--rules` for the catalogue) |
+| [m1-can](https://github.com/nedlane/m1-can) | CAN bus/topology inspection + `.m1dbc` to Vector `.dbc` export |
 | [m1-doc](https://github.com/C-Nucifora/m1-doc) | Documentation generator: Markdown/HTML reference from a project |
 | [m1-eval](https://github.com/C-Nucifora/m1-eval) | Script evaluator/interpreter: real numeric evaluation, whole-project scheduling, counterfactual log replay |
 | [m1-visualiser](https://github.com/C-Nucifora/m1-visualiser) | Interactive dependency & lookup-table graph (self-contained Cytoscape HTML + DOT/JSON) |
@@ -79,6 +80,7 @@ graph TD
     core["m1-core<br/>CST helpers + diagnostics"]
     ws["m1-workspace<br/>shared fs / config / path conventions"]
     tc["m1-typecheck"]
+    can["m1-can<br/>CAN topology + DBC export"]
     fmt["m1-fmt"]
     lint["m1-lint"]
     proj["m1-project"]
@@ -92,24 +94,24 @@ graph TD
     ci["m1-ci<br/>reusable CI for M1 script projects"]
 
     ts --> core
-    core --> tc & fmt & lint & doc & lsp & mcp & eval & vis
-    ws --> tc & fmt & lint & proj & lsp & mcp
-    tc -->|symbol model| doc & eval & vis
+    core --> tc & fmt & lint & doc & lsp & mcp & eval & vis & can
+    ws --> tc & fmt & lint & proj & lsp & mcp & can
+    tc -->|symbol model| doc & eval & vis & can
     eval -->|overlay values| vis
     tc --> lsp
     fmt --> lsp
     lint --> lsp
-    tc & fmt & lint --> mcp
+    tc & fmt & lint & can --> mcp
     lsp --> vscode & nvim
     proj -->|spawned by the editors| vscode & nvim
 ```
 
 The layers above are: **tree-sitter-m1** (grammar) → **m1-core** /
 **m1-workspace** (shared libraries) → the **domain libraries / CLIs**
-(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-doc, m1-eval) → **m1-lsp** (the
+(m1-typecheck, m1-fmt, m1-lint, m1-project, m1-can, m1-doc, m1-eval) → **m1-lsp** (the
 language server that integrates them) → the **editor clients** (m1-vscode,
 nvim-m1). **m1-mcp** is a parallel consumer of the domain libraries: an MCP
-server that surfaces doc lookup and typecheck/lint/fmt to AI agents, the way
+server that surfaces doc lookup, typecheck/lint/fmt, and m1-can inspection to AI agents, the way
 m1-lsp surfaces them to editors. **m1-visualiser** graphs the dependency /
 lookup-table structure and can overlay m1-eval's computed values. **m1-ci** is
 standalone: reusable CI for M1 *script* projects, not a build-time dependency
