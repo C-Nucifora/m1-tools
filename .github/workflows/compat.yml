@@ -80,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           order=(tree-sitter-m1 m1-core m1-workspace m1-project m1-fmt m1-lint
-                 m1-typecheck m1-doc m1-eval m1-visualiser m1-mcp m1-lsp)
+                 m1-typecheck m1-can m1-doc m1-eval m1-visualiser m1-mcp m1-lsp)
           for repo in "${order[@]}"; do
             echo "::group::cargo test $repo"
             cargo test --manifest-path "released/$repo/Cargo.toml"

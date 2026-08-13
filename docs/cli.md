@@ -1,8 +1,8 @@
 # M1 CLIs — quickstart & conventions
 
-The toolchain ships five standalone command-line tools that work on M1
+The toolchain ships six standalone command-line tools that work on M1
 projects without an editor — `m1-fmt`, `m1-lint`, `m1-typecheck`, `m1-doc`,
-`m1-project` — plus `m1-cfg-export` (bundled with `m1-typecheck`). These are
+`m1-project`, `m1-can` — plus `m1-cfg-export` (bundled with `m1-typecheck`). These are
 the same engines the editor plugins drive (over LSP or by spawning the CLI), so
 what you see in CI matches what you see in your editor. `m1-mcp` (last row) is a
 different shape: a Model Context Protocol server that surfaces those engines to
@@ -13,6 +13,7 @@ AI agents over stdio rather than a CLI you run on a project.
 | [`m1-fmt`](https://github.com/C-Nucifora/m1-fmt) | Formats scripts (tabs + Allman by default, per the M1 manual) | format-on-save, `--check` in CI |
 | [`m1-lint`](https://github.com/C-Nucifora/m1-lint) | Static analysis / style rules (L0xx) | catch style + correctness issues |
 | [`m1-typecheck`](https://github.com/C-Nucifora/m1-typecheck) | Type/symbol model + type rules (T0xx) | catch type mismatches against the project model |
+| [`m1-can`](https://github.com/nedlane/m1-can) | Reconstructs DBC-to-bus bindings, checks ID reuse, and exports `.m1dbc` as Vector `.dbc` | answer CAN topology questions; keep generated DBCs in sync |
 | [`m1-doc`](https://github.com/C-Nucifora/m1-doc) | Generates a Markdown/HTML reference of a project (channels, parameters, functions with inputs/returns, `@m1:` annotations) | always-current docs; publish to gh-pages |
 | [`m1-mcp`](https://github.com/nedlane/m1-mcp) | MCP server: exposes doc lookup + typecheck/lint/fmt/symbols to AI agents over stdio | `claude mcp add m1 -- m1-mcp`; agents check M1 semantics + their own edits |
 | [`m1-project`](https://github.com/nedlane/m1-project) | Validated editor for `Project.m1prj` (create channels/groups, set type/unit/security/call-rate/tags, validate) | scripted project edits; `validate` as a pre-commit/CI gate |
@@ -71,6 +72,20 @@ m1-doc --project Project.m1prj --graph Root.Engine --format json  # machine-read
 (`--title`, `--include-source`, `--only-tag`, `--graph-depth`). The VS Code
 and CI docs flows shell out to this same binary, so a doc set built in CI
 matches what you preview locally.
+
+### Inspect CAN / export DBC
+
+```sh
+m1-can inspect --project Project.m1prj
+m1-can inspect --project Project.m1prj --filter inverter --limit 50
+m1-can export
+m1-can export --check
+```
+
+Inspection resolves each `.m1dbc` module's `DBC.<Name>.Init(<bus>)` binding and
+classifies repeated IDs as `same-bus`, `different-bus`, or `unknown`. Export is
+configured by `[dbc]` in `m1-tools.toml`; see the
+[m1-can README](https://github.com/nedlane/m1-can#configuration).
 
 ### Edit / validate the project file
 
