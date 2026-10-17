@@ -39,7 +39,7 @@ locally, fails in CI" mismatch), generate a tag-pinned manifest on demand:
 ```sh
 scripts/release-manifest.sh > m1-tools-release.repos
 mkdir released && cd released
-vcs import .. < ../m1-tools-release.repos
+vcs import . < ../m1-tools-release.repos
 ```
 
 (The four CLI tools resolve to the `tools.env` pins; everything else to its
@@ -271,7 +271,7 @@ PR annotations, and optional SARIF upload:
 # .github/workflows/check.yml
 jobs:
   m1-check:
-    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.30.0
+    uses: C-Nucifora/m1-ci/.github/workflows/check.yml@v0.37.0
 ```
 
 The same gates run locally as pre-commit hooks at the same pinned versions —
