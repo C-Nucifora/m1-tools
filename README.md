@@ -39,7 +39,7 @@ locally, fails in CI" mismatch), generate a tag-pinned manifest on demand:
 ```sh
 scripts/release-manifest.sh > m1-tools-release.repos
 mkdir released && cd released
-vcs import .. < ../m1-tools-release.repos
+vcs import . < ../m1-tools-release.repos
 ```
 
 (The four CLI tools resolve to the `tools.env` pins; everything else to its
