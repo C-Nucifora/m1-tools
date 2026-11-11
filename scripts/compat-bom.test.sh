@@ -174,6 +174,112 @@ else
 fi
 rm -rf "$dir"
 
+# Invalid input must fail before a successful empty BOM can be emitted.
+for invalid in missing empty incomplete malformed; do
+  dir="$(make_sandbox '  echo "v1.0.0"; exit 0')"
+  case "$invalid" in
+    missing) rm "$dir/m1-tools.repos" ;;
+    empty) printf 'repositories:\n' >"$dir/m1-tools.repos" ;;
+    incomplete) printf 'repositories:\n  rust-tool:\n    type: git\n' >"$dir/m1-tools.repos" ;;
+    malformed) printf 'not a repository manifest\n' >"$dir/m1-tools.repos" ;;
+  esac
+  run "$dir" --json
+  if [ "$RC" -ne 0 ] && [ ! -s "$OUT" ]; then
+    pass "$invalid manifest fails without emitting a BOM"
+  else
+    die "$invalid manifest unexpectedly emitted a BOM (rc=$RC)"
+  fi
+  rm -rf "$dir"
+done
+
+# A malformed later entry must not disappear behind an earlier valid entry.
+for entry in '  missing: # comment' '  missing: {}'; do
+  dir="$(make_sandbox '  echo "v1.0.0"; exit 0')"
+  printf '%s\n    type: git\n' "$entry" >>"$dir/m1-tools.repos"
+  run "$dir" --json
+  if [ "$RC" -ne 0 ] && [ ! -s "$OUT" ]; then
+    pass "mixed complete and incomplete entries fail"
+  else
+    die "incomplete later entry was omitted (rc=$RC)"
+  fi
+  rm -rf "$dir"
+done
+
+dir="$(make_sandbox '  echo "v1.0.0"; exit 0')"
+sed -i 's/  node-tool:/  node-tool: # comment/' "$dir/m1-tools.repos"
+run "$dir" --json
+if [ "$RC" -eq 0 ] && python3 -c '
+import json, sys
+repos = json.load(open(sys.argv[1]))["repos"]
+assert [(r["name"], r["slug"]) for r in repos] == [
+    ("rust-tool", "C-Nucifora/rust-tool"), ("node-tool", "C-Nucifora/node-tool")]
+' "$OUT"; then
+  pass "commented entry preserves repository association"
+else
+  die "commented entry lost or misassociated a repository"
+fi
+rm -rf "$dir"
+
+# Legal Cargo table forms must expose the same internal pin.
+for form in table single alias dev build target workspace duplicate metadata malformed conflict legacy_dev legacy_build legacy_target_dev legacy_target_build precedence_dev precedence_build precedence_target_dev precedence_target_build; do
+  dir="$(make_sandbox '  echo "v1.0.0"; exit 0')"
+  python3 - "$dir" "$form" <<'PYTEST'
+from pathlib import Path
+import sys
+root, form = Path(sys.argv[1]), sys.argv[2]
+dep = 'm1-core = {git="https://github.com/C-Nucifora/m1-core.git", tag="v0.15.0"}'
+forms = {
+    "table": '[dependencies.m1-core]\ngit="https://github.com/C-Nucifora/m1-core.git"\ntag="v0.15.0"',
+    "single": "[dependencies]\nm1-core = { git = 'https://github.com/C-Nucifora/m1-core.git', tag = 'v0.15.0' }",
+    "alias": '[dependencies]\ncore = { package="m1-core", git="https://github.com/C-Nucifora/m1-core.git", tag="v0.15.0" }',
+    "dev": '[dev-dependencies]\n' + dep,
+    "build": '[build-dependencies]\n' + dep,
+    "target": "[target.'cfg(unix)'.dependencies]\n" + dep,
+    "workspace": '[workspace.dependencies]\n' + dep + '\n[dependencies]\nm1-core.workspace = true',
+    "duplicate": '[dependencies]\n' + dep + '\n[dev-dependencies]\n' + dep,
+    "metadata": '[package.metadata.example]\nm1-extra = {git="https://github.com/example/m1-extra", tag="v9"}\n[dependencies]\n' + dep,
+    "malformed": '[dependencies\n' + dep,
+    "conflict": '[dependencies]\n' + dep + '\n[dev-dependencies]\n' + dep.replace('v0.15.0', 'v0.14.0'),
+}
+for kind in ('dev', 'build'):
+    for prefix, key in (('', ''), ("target.'cfg(unix)'.", 'target_')):
+        legacy = f'[{prefix}{kind}_dependencies]\n'
+        current = f'[{prefix}{kind}-dependencies]\n'
+        forms[f'legacy_{key}{kind}'] = legacy + dep
+        forms[f'precedence_{key}{kind}'] = (
+            legacy + dep.replace('v0.15.0', 'v0.14.0') + '\n' + current + dep
+        )
+p = root / 'bin/gh'
+s = p.read_text()
+a = s.index("    cat <<'TOML'\n") + len("    cat <<'TOML'\n")
+b = s.index('\nTOML', a)
+p.write_text(s[:a] + forms[form] + s[b:])
+p = root / 'm1-tools.repos'
+p.write_text(p.read_text().replace('  node-tool:', '  m1-core:'))
+PYTEST
+  run "$dir" --json
+  case "$form" in
+    malformed|conflict)
+      if [ "$RC" -ne 0 ]; then pass "$form Cargo cannot produce a misleading BOM";
+      else die "$form Cargo was accepted"; fi ;;
+    *)
+      if [ "$RC" -eq 0 ] && python3 - "$OUT" <<'PYTEST'
+import json, sys
+repo = json.load(open(sys.argv[1]))['repos'][0]
+assert repo['released_pins'] == repo['main_pins'] == {'m1-core': 'v0.15.0'}, repo
+PYTEST
+      then pass "$form Cargo exposes the pin";
+      else die "$form Cargo lost the pin"; fi
+      cp "$here/scripts/check-skew.sh" "$dir/scripts/check-skew.sh"
+      if PATH="$dir/bin:$PATH" bash "$dir/scripts/check-skew.sh" >"$dir/skew" 2>&1; then
+        die "$form stale pin passed the end to end skew guard"
+      elif ! grep -q 'pins m1-core v0.15.0' "$dir/skew"; then
+        die "$form skew check failed without reporting the stale pin"
+      fi ;;
+  esac
+  rm -rf "$dir"
+done
+
 if [ "$fail" -ne 0 ]; then
   echo "compat-bom.test.sh: FAILED" >&2
   exit 1

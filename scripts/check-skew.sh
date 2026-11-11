@@ -20,7 +20,7 @@
 # BOM, its logic is unit-tested by stubbing compat-bom.sh (see
 # check-skew.test.sh); here it errors out if the BOM itself cannot be produced.
 #
-# Requires: gh (authenticated, via compat-bom.sh), python3.
+# Requires: gh (authenticated, via compat-bom.sh), Python 3.11+.
 
 set -euo pipefail
 
@@ -39,6 +39,8 @@ import sys
 
 bom = json.load(open(sys.argv[1]))
 repos = bom["repos"]
+if not repos:
+    sys.exit("error: compatibility BOM contains no repositories")
 latest = {r["name"]: r["release_tag"] for r in repos}
 
 skews = []
