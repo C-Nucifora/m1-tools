@@ -67,7 +67,7 @@ from functools import reduce
 coverage = open(sys.argv[1]).read()
 trace = json.load(open(sys.argv[2]))
 
-# Parse the "Schedule:" section: lines like "  Root.Engine.Limit @ 100 Hz".
+# Parse the "Schedule:" section, including optional execution-order prefixes.
 # Names may contain spaces and dots, so match the rate/Hz suffix and take the
 # rest as the function path.
 schedule = {}
@@ -77,7 +77,7 @@ for line in coverage.splitlines():
         in_schedule = True
         continue
     if in_schedule:
-        m = re.match(r"\s+(.*\S)\s+@\s+([0-9.]+)\s+Hz\s*$", line)
+        m = re.match(r"\s+(?:[0-9]+\.\s+)?(.*\S)\s+@\s+([0-9.]+)\s+Hz\s*$", line)
         if m:
             schedule[m.group(1)] = int(float(m.group(2)))
 

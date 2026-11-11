@@ -13,7 +13,7 @@ final Root.Diagnostics.Temperature = 95
 final Root.Engine.Limited Torque = 250
 final Root.Engine.Speed = 3000
 final Root.Engine.Torque = 4500
-final Root.Sensors.Filtered = 41.99940055596907
+final Root.Sensors.Filtered = 41.9994
 final Root.Sensors.Raw = 42
 # externally driven / defaulted channels
 external Root.Sensors.Filtered

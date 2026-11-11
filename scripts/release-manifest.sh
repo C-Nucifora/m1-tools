@@ -11,7 +11,7 @@
 # m1-ci/tools.env pins, everything else from its latest GitHub release — so
 #
 #   scripts/release-manifest.sh > m1-tools-release.repos
-#   mkdir released && cd released && vcs import .. < ../m1-tools-release.repos
+#   mkdir released && cd released && vcs import . < ../m1-tools-release.repos
 #
 # reproduces exactly what consumers install. Generated on demand (it queries
 # GitHub) rather than committed, so it cannot go stale in-tree.
