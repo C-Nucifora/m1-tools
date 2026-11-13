@@ -109,6 +109,18 @@ else
 fi
 rm -rf "$dir"
 
+# An empty upstream BOM cannot establish compatibility.
+dir="$(make_sandbox 'cat <<JSON
+{"repos":[]}
+JSON')"
+run "$dir"
+if [ "$RC" -ne 0 ] && ! grep -q 'no undocumented cross-repo skew' "$OUT"; then
+  pass "empty BOM fails without a no-skew message"
+else
+  die "empty BOM unexpectedly passed (rc=$RC)"
+fi
+rm -rf "$dir"
+
 if [ "$fail" -ne 0 ]; then
   echo "check-skew.test.sh: FAILED" >&2
   exit 1

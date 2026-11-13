@@ -45,19 +45,21 @@ Stubbed:
 Unsupported:
   (none)
 Schedule:
-  Root.A @ 100 Hz
-  Root.B @ 50 Hz
+  1. Root.A @ 100 Hz
+  2. Root.B @ 50 Hz
 COV
   exit 0
 fi
 if [ "$mode" = whole ]; then
-  cat >"$out" <<'JSON'
-{"time":[0,0.01],"channels":{"Root.X":[1,2],"Root.Y":[5,7]},"external":["Root.Y"]}
-JSON
+  cp "${0%/bin/m1-eval}/trace.json" "$out"
   exit 0
 fi
 exit 0
 STUB
+  printf 'duration_s = 0.02\n' >"$dir/corpus/whole-project.scenario.toml"
+  cat >"$dir/trace.json" <<'JSON'
+{"time":[0,0.01],"channels":{"Root.X":[1,2],"Root.Y":[5,7]},"external":["Root.Y"],"schedule_executions":[{"function":"Root.A","base_tick":0,"phase":"periodic","elapsed_s":0},{"function":"Root.B","base_tick":0,"phase":"periodic","elapsed_s":0},{"function":"Root.A","base_tick":1,"phase":"periodic","elapsed_s":0.01}]}
+JSON
   chmod +x "$dir/bin/m1-eval"
   printf '%s' "$dir"
 }
@@ -132,6 +134,57 @@ if [ "$RC" -eq 2 ]; then
 else
   die "expected exit 2 on unknown flag (rc=$RC)"
 fi
+rm -rf "$dir"
+
+# Unchanged final values cannot conceal skipped, duplicated or mistimed runs.
+for mutation in grid missing empty skip_a skip_b duplicate moved unknown elapsed channel_length; do
+  dir="$(make_sandbox)"
+  run "$dir" --update
+  cp "$dir/golden/g.txt" "$dir/original-golden"
+  python3 - "$dir/trace.json" "$mutation" <<'PYTEST'
+import json, sys
+path, mutation = sys.argv[1:]
+t = json.load(open(path))
+e = t['schedule_executions']
+if mutation == 'grid': t['time'] = [0, 99]
+elif mutation == 'missing': del t['schedule_executions']
+elif mutation == 'empty': e.clear()
+elif mutation == 'skip_a': del e[0]
+elif mutation == 'skip_b': del e[1]
+elif mutation == 'duplicate': e.append(e[0].copy())
+elif mutation == 'moved': e[1].update(base_tick=1, elapsed_s=0.01)
+elif mutation == 'unknown': e[0]['function'] = 'Root.Unknown'
+elif mutation == 'elapsed': e[0]['elapsed_s'] = 12
+elif mutation == 'channel_length': t['channels']['Root.X'] = [2]
+with open(path,'w') as f: json.dump(t,f)
+PYTEST
+  run "$dir"
+  if [ "$RC" -eq 0 ]; then die "$mutation trace passed";
+  else pass "$mutation trace rejected"; fi
+  run "$dir" --update
+  if [ "$RC" -eq 0 ] || ! cmp -s "$dir/original-golden" "$dir/golden/g.txt"; then
+    die "$mutation trace could replace the golden"
+  fi
+  rm -rf "$dir"
+done
+
+# Tick zero makes the slow function run twice in three base ticks.
+dir="$(make_sandbox)"
+printf 'duration_s = 0.03\n' >"$dir/corpus/whole-project.scenario.toml"
+python3 - "$dir/trace.json" <<'PYTEST'
+import json, sys
+p=sys.argv[1]
+t=json.load(open(p))
+t['time'].append(0.02)
+for values in t['channels'].values(): values.append(values[-1])
+for fn in ['Root.A','Root.B']:
+    t['schedule_executions'].append(dict(function=fn,base_tick=2,phase='periodic',elapsed_s=0.02))
+with open(p,'w') as f: json.dump(t,f)
+PYTEST
+run "$dir" --update
+if [ "$RC" -eq 0 ] && grep -q 'invocations Root.B @50Hz = 2' "$dir/golden/g.txt"; then
+  pass "partial period counts tick zero and the later due execution"
+else die "partial period invocation count is wrong"; fi
 rm -rf "$dir"
 
 if [ "$fail" -ne 0 ]; then

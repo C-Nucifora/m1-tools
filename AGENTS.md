@@ -51,6 +51,7 @@ diagram, cross-tool conventions, editor setup).
   graph in dependency order and runs the released fmt/lint/typecheck plus an
   m1-eval whole-project multi-rate golden (`scripts/eval-golden.sh`, invocation
   counts + final values for the 100/50/10 Hz groups) over the synthetic
-  `tests/acceptance-corpus/`. Every script is shellcheck-clean with
+  `tests/acceptance-corpus/`. The BOM, skew and evaluator golden scripts require Python 3.11+ for stdlib TOML parsing.
+  Every script is shellcheck-clean with
   a `*.test.sh` beside it (stubbed gh, no network), run by the `release-script`
   CI job.
