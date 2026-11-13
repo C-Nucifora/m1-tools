@@ -206,7 +206,12 @@ for entry in '  missing: # comment' '  missing: {}'; do
 done
 
 dir="$(make_sandbox '  echo "v1.0.0"; exit 0')"
-sed -i 's/  node-tool:/  node-tool: # comment/' "$dir/m1-tools.repos"
+python3 - "$dir/m1-tools.repos" <<'PYTEST'
+from pathlib import Path
+import sys
+manifest = Path(sys.argv[1])
+manifest.write_text(manifest.read_text().replace('  node-tool:', '  node-tool: # comment'))
+PYTEST
 run "$dir" --json
 if [ "$RC" -eq 0 ] && python3 -c '
 import json, sys

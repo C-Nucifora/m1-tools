@@ -24,7 +24,7 @@ readme="${1:-$here/README.md}"
 # grep exits non-zero on no match; under `set -e` (and `set -o pipefail`) that
 # would abort before the empty-pin guard runs. Tolerate it so a missing pin
 # reaches the explicit check below.
-pinned=$(grep -oP 'check\.yml@\Kv[0-9.]+' "$readme" | sort -u) || true
+pinned=$(grep -oE 'check\.yml@v[0-9.]+' "$readme" | sed 's/^check\.yml@//' | sort -u) || true
 
 # An empty result means the pin snippet is gone, not merely stale. The multi-pin
 # guard below does NOT catch this: `echo "" | wc -l` is 1, so it would pass and
